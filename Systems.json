@@ -1,0 +1,197 @@
+{
+    "-1" : [
+    ],
+    "18" : [
+        ["Planet", "Mecatol Rex", "NoType", 1, 6]
+    ],
+    "19" : [
+        ["Planet", "Wellon", "Industrial", 1, 2]
+    ],
+    "20" : [
+        ["Planet", "Vefut II", "Hazardous", 2, 2]
+    ],
+    "21":[
+        ["Planet", "Thibah", "Industrial", 1, 1]
+    ],
+    "22" : [
+        ["Planet", "Tar'Mann", "Industrial", 1, 1]
+    ],
+    "23":[
+        ["Planet", "Saudor", "Industrial", 2, 2]
+    ],
+    "24" : [
+        ["Planet", "Mehar Xull", "Hazardous", 1, 3]
+    ],
+    "25" : [
+        ["Planet", "Quann", "Cultural", 2, 1],
+        ["Wormhole", "Beta"]
+    ],
+    "26":[
+        ["Planet", "Lodor", "Cultural", 3, 1],
+        ["Wormhole", "Alpha"]
+    ],
+    "27" : [
+        ["Planet", "New Albion", "Cultural", 1, 1],
+        ["Planet", "Starpoint", "Hazardous", 3, 1]
+    ],
+    "28" : [
+        ["Planet", "Tequ'Ran", "Hazardous", 2, 0],
+        ["Planet", "Torkan", "Cultural", 0, 3]
+    ],
+    "29" : [
+        ["Planet", "Qucen'n", "Industrial", 1, 2],
+        ["Planet", "Rarron", "Cultural", 0, 3]
+    ],
+    "30" : [
+        ["Planet", "Mellon", "Cultural", 0, 2],
+        ["Planet", "Zohbat", "Hazardous", 3, 1]
+    ],
+    "31" : [
+        ["Planet", "Lazar", "Industrial", 1, 0],
+        ["Planet", "Sakulag", "Hazardous", 2, 1]
+    ],
+    "32"  : [
+        ["Planet", "Dal Bootha", "Cultural", 0, 2],
+        ["Planet", "Xxehan", "Cultural", 1, 1]
+    ],
+    "33"  : [
+        ["Planet", "Corneeq", "Cultural", 1, 2],
+        ["Planet", "Resculon", "Cultural", 2, 0]
+    ],
+    "34"  : [
+        ["Planet", "Centauri", "Cultural", 1, 3],
+        ["Planet", "Gral", "Industrial", 1, 1]
+    ],
+    "35" : [
+        ["Planet", "Bereg", "Hazardous", 3, 1],
+        ["Planet", "Lirta IV", "Hazardous", 2, 3]
+    ],
+    "36" : [
+        ["Planet", "Arnor", "Industrial", 2, 1],
+        ["Planet", "Lor", "Industrial", 1, 2]
+    ],
+    "37":[
+        ["Planet", "Arinam", "Industrial", 1, 2],
+        ["Planet", "Meer", "Hazardous", 0, 4]
+    ],
+    "38" : [
+        ["Planet", "Abyz", "Hazardous", 3, 0],
+        ["Planet", "Fria", "Hazardous", 2, 0]
+    ],
+    "39" : [
+        ["Wormhole", "Alpha"]
+    ],
+    "40": [
+        ["Wormhole", "Beta"]
+    ],
+    "41": [
+        ["Anomaly", "GravityRift"]
+    ],
+    "42" : [
+        ["Anomaly", "Nebulae"]
+    ],
+    "43" : [
+        ["Anomaly", "Supernova"]
+    ],
+    "44" : [
+        ["Anomaly", "AsteroidField"]
+    ],
+    "45" : [
+        ["Anomaly", "AsteroidField"]
+    ],
+    "46" : [
+
+    ],
+    "47" : [
+
+    ],
+    "48" : [
+
+    ],
+    "49" : [
+
+    ],
+    "50" : [
+
+    ],
+    "59" : [
+        ["Planet", "Archon Vail", "Hazardous", 1, 3]
+    ],
+    "60" : [
+        ["Planet", "Perimeter", "Industrial", 2, 1]
+    ],
+    "61" : [
+        ["Planet", "Ang", "Industrial", 2, 0]
+    ],
+    "62" : [
+        ["Planet", "Sem-Lore", "Cultural", 3, 2]
+    ],
+    "63" : [
+        ["Planet", "Vorhal", "Cultural", 0, 2]
+    ],
+    "64" : [
+        ["Planet", "Atlas", "Hazardous", 3, 1],
+        ["Wormhole", "Beta"]
+    ],
+    "65" : [
+        ["Planet", "Primor", "Cultural", 2, 1]
+    ],
+    "66" : [
+        ["Planet", "Hope's End", "Hazardous", 3, 0]
+    ],
+    "67" : [
+        ["Planet", "Cormund", "Hazardous", 2, 0],
+        ["Anomaly", "GravityRift"]  
+    ],
+    "68" : [
+        ["Planet", "Everra", "Cultural", 3, 1],
+        ["Anomaly", "Nebulae"]
+    ],
+    "69" : [
+        ["Planet", "Accoen", "Industrial", 2, 3],
+        ["Planet", "Jeol IR", "Industrial", 2, 3]
+    ],
+    "70" : [
+        ["Planet", "Kraag", "Hazardous", 2, 1],
+        ["Planet", "Siig", "Hazardous", 0, 2]
+    ],
+    "71" : [
+        ["Planet", "Ba'Kal", "Industrial", 3, 2],
+        ["Planet", "Alio Prima", "Cultural", 1, 1]
+    ],
+    "72" : [
+        ["Planet", "Lisis", "Industrial", 2, 2],
+        ["Planet", "Velnor", "Industrial", 2, 1]
+    ],
+    "73" : [
+        ["Planet", "Cealdri", "Cultural", 0, 2],
+        ["Planet", "Xanhact", "Hazardous", 0, 1]
+    ],
+    "74" : [
+        ["Planet", "Vega Major", "Cultural", 2, 1],
+        ["Planet", "Vega Minor", "Cultural", 1, 2]
+    ],
+    "75" : [
+        ["Planet", "Loki", "Cultural", 1, 2],
+        ["Planet", "Abaddon", "Cultural", 1, 0],
+        ["Planet", "Ashtroth", "Hazardous", 2, 0]
+    ],
+    "76" : [
+        ["Planet", "Rigel I", "Hazardous", 0, 1],
+        ["Planet", "Rigel II", "Hazardous", 1, 2],
+        ["Planet", "Rigel III", "Hazardous", 1, 1]
+    ],
+    "77" : [
+
+    ],
+    "78" : [
+
+    ],
+    "79" : [
+        ["Wormhole", "Alpha"],
+        ["Anomaly", "AsteroidField"]
+    ],
+    "80" : [
+        ["Anomaly", "Supernova"]
+    ]
+}

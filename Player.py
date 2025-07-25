@@ -1,0 +1,79 @@
+# Player will have list of planets
+# List of techs
+# Units
+
+from functools import lru_cache
+from ImageCache import ImageCache
+import Race
+from typing import Literal
+import random
+
+class Player:
+    def __init__(self, ID):
+        self.PlayerID = ID
+
+        self.PlayerToken = None
+
+        self.PlayerName : str = "AlmondSpring250"
+        self.Colour : tuple = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+
+        self.Race : Race = None
+        
+        self.SetRace(random.choice(["Arborec", "BaronyOfLetnev", "Lizix"]))
+
+        self.VP : int = 0 # initial victory points - always starts at 0
+        self.StrategyCard = None
+        self.Priority = None
+
+        self.Eliminated = False
+        self.Passed = False
+
+        self.PropulsionTechs : list = []
+        self.BiologicalTechs : list = []
+        self.CyberneticTechs : list = []
+        self.WarfareTechs : list = []
+
+        self.TotalTechs = 0
+
+        self.TacticsTokens = 3
+        self.FleetTokens = 3
+        self.StrategyTokens = 2
+
+        self.Token : ImageCache = None
+        self.SetStrategyToken()
+
+        self.Resources : int = 0
+        self.Influence : int = 0
+
+        self.Commodities = 0
+        self.TradeGoods = 0
+        pass
+
+    def __eq__(self, Another_Player):
+        if not isinstance(Another_Player, Player):
+            raise TypeError(f"Unable to Compare Player object with type {type(Another_Player)}")
+        
+        return self.PlayerID == Another_Player.PlayerID
+    
+    def SetRace(self, RaceName : Literal["Arborec", "BaronyOfLetnev", "Lizix"]):
+        match RaceName:
+            case "Arborec":
+                self.Race = Race.Arborec()
+            case "BaronyOfLetnev":
+                self.Race = Race.Letnev()
+            case "Lizix":
+                self.Race = Race.Lizix()
+    
+    def SetStrategyToken(self, path = "Assets\\RaceItems\\TacticsToken.png"):
+        self.Token = ImageCache(path, 10)
+
+    @lru_cache(maxsize=8)
+    def GetTokenImg(self, radius):
+        return self.Token.get_scaled_tile(radius)
+    
+    def Select_Strategy_Cards(self):
+        #sets strategy card for player
+        pass
+
+    def GetPlayerColour(self):
+        return self.Colour

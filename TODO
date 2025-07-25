@@ -1,0 +1,22 @@
+TODO
+
+
+Build GUI
+ - add starting screen to app 
+ - add strategy card selection screen
+ - add 
+
+fix the problem with text size not adjusting
+
+Create file to store home system tiles
+
+Investigate possible Multiplayer over wifi
+
+readjust System object to work for n number of rings
+
+Buttons for the active system - activate system, selecting ships to me moved there
+
+phases of a turn in action phase - taking planets
+
+
+either - for system containing ship of the player, or distance from Activated System

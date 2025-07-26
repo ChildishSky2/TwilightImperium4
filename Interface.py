@@ -7,6 +7,7 @@ import math
 import Game
 from ImageCache import ImageCache
 from Game_Enums import UnitType
+from Map import Planet, Tile
 #view
 
 class UserInterface():
@@ -105,10 +106,13 @@ class UserInterface():
 
     def _draw_Map(self):
         """Draw a circular grid of hexagons using cached tiles."""
-        
-        def GetTokenPos(blits, center_x, center_y):
-            num_planets = len(self.Game.Map.Map[index].Planets)
-            num_tokens = len(activated_players)     
+        circle_radius = self.radius / 1.75
+        token_size = int(self.radius / 4)
+
+        def GetTokenPos(blits : list, tile : Tile, center_x, center_y):
+            num_planets = len(tile.Planets)
+            activated_players = tile.GetPlayersWhoActivatedSystem()
+            num_tokens = len(activated_players)
 
             match num_planets:
                 case 1:
@@ -147,7 +151,7 @@ class UserInterface():
                     ]
                     for i, player_idx in enumerate(activated_players):
                         token_img = self.Game.Players[player_idx].GetTokenImg(token_size)
-                        blits.append((token_img, (token_x, token_y)))
+                        blits.append((token_img, positions[i]))
 
                 case _:
                     for i, player_idx in enumerate(activated_players):
@@ -161,25 +165,10 @@ class UserInterface():
                         token_img = self.Game.Players[player_idx].GetTokenImg(token_size)
                         blits.append((token_img, (token_x, token_y)))
 
-        if not hasattr(self, '_ship_image_cache'):  # Refresh cache every 60 frames
-            self._ship_image_cache = {}
-            for player_id, player in enumerate(self.Game.Players):
-                player_color = player.Colour
-                for unit_type in [UnitType.FIGHTER, UnitType.DESTROYER, UnitType.CRUISER, 
-                                UnitType.CARRIER, UnitType.DREADNOUGHT, UnitType.FLAGSHIP, UnitType.WAR_SUN]:
-                    cache_key = (unit_type, tuple(player_color))
-                    try:
-                        self._ship_image_cache[cache_key] = self.Game.UnitManager.get_unit_image(unit_type, player_color, 10)
-                    except:
-                        pass  # Skip if unit has no image
-    
         # Batch collect all ship blits
         tile_blits = []
         ship_blits = []
         token_blits = []
-
-        token_size = int(self.radius / 4)
-        circle_radius = self.radius / 1.75
 
         x_adjust = 0.85 * self.radius
         y_adjust = 0.9 * self.radius
@@ -193,13 +182,9 @@ class UserInterface():
             
             #if more than 0 tokens in a system, then we nneed to draw the system
             if len(activated_players) > 0:
-                #Calculate_Token_Positions(x + x_adjust, y + y_adjust)
-                GetTokenPos(token_blits, x + x_adjust, y + y_adjust)
+                GetTokenPos(token_blits, tile, x + x_adjust, y + y_adjust)
 
             if len(tile.ShipsInSpace) > 0:
-                ship_x = x + 0.85 * self.radius
-                ship_y = y + 0.9 * self.radius
-            
                 for ship_idx, ship in enumerate(tile.GetShipsInSystem()):
                     player_color = self.Game.Players[tile.ShipOwner].Colour
                     
@@ -208,9 +193,9 @@ class UserInterface():
                     
                     if ship_image:  # Only add if image exists
                         # Offset ships so they don't overlap
-                        offset_x = ship_x + (ship_idx * 15)  # 15 pixel offset per ship
-                        offset_y = ship_y + (ship_idx * 5)   # Small vertical offset
-                        ship_blits.append((ship_image, (offset_x, offset_y)))
+                        offset_x = x_adjust + (ship_idx * 15)  # 15 pixel offset per ship
+                        offset_y = y_adjust + (ship_idx * 5)   # Small vertical offset
+                        ship_blits.append((ship_image, (offset_x + x, offset_y + y)))
 
         if tile_blits:
             self.Screen.blits(tile_blits)

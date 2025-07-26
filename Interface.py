@@ -203,17 +203,14 @@ class UserInterface():
         y_adjust = 0.9 * self.radius
 
         for index, tile in enumerate(self.Game.Map.Map):
-            blits.append((tile.TileImage.get_scaled_tile(self.radius), self.MapHexPositions[index]))
-
-
             x, y = self.MapHexPositions[index]
-            
+
+            blits.append((tile.TileImage.get_scaled_tile(self.radius), self.MapHexPositions[index]))
             GetTokenPos(blits, tile, x + x_adjust, y + y_adjust)
             GetShipBlits(blits, tile, x + x_adjust, y + y_adjust)
 
         if blits:
             self.Screen.blits(blits)
-
 
         return
 
@@ -426,7 +423,6 @@ class UserInterface():
         return
 
     def _draw_Active_System(self):
-
         #pass, end turn, undo buttons
         font = pygame.font.SysFont(None, 30)
         min_window_dim = min(self.ActivateSystemButton.width, self.ActivateSystemButton.height)
@@ -443,17 +439,6 @@ class UserInterface():
                 )
             )
             self.Screen.blit(text_surface, text_rect)
-        
-        def PassTurnButton():
-            pygame.draw.rect(self.Screen, (0, 0, 0), self.PassTurnButton, 2)
-            text_surface = font.render("Pass Turn", True, (0, 0, 0))
-            text_rect = text_surface.get_rect(
-            topleft=(
-                self.PassTurnButton.left + padding,
-                self.PassTurnButton.top + padding
-                )
-            )
-            self.Screen.blit(text_surface, text_rect)
 
         def EndTurnButton():
             pygame.draw.rect(self.Screen, (255, 255, 255), self.EndTurnButton)
@@ -466,19 +451,30 @@ class UserInterface():
                 )
             )
             self.Screen.blit(EndTurn_surface, EndTurn_rect)
-
+        
+        def PassTurnButton():
+            pygame.draw.rect(self.Screen, (0, 0, 0), self.PassTurnButton, 2)
+            text_surface = font.render("Pass Turn", True, (0, 0, 0))
+            text_rect = text_surface.get_rect(
+            topleft=(
+                self.PassTurnButton.left + padding,
+                self.PassTurnButton.top + padding
+                )
+            )
+            self.Screen.blit(text_surface, text_rect)
+        
         if self.selectedTile == None and self.Game.ActiveSystem == None:
             PassTurnButton()
             return
+
+        img_source = self.Game.Map.Map[self.Game.ActiveSystem].TileImage if self.Game.ActiveSystem != None else self.Game.Map.Map[self.selectedTile].TileImage
+        img = img_source.get_scaled_tile(self.radius * 3)
+        self.Screen.blit(img, (self.width * 0.02, self.height * 0.2))
 
         if self.selectedTile != None and self.Game.Map.Map[self.selectedTile].CheckPlayerHasActivatedSystem(self.Game.Players[self.Game.Turn].PlayerID):
             ActivateSystemButtom((100, 100, 100))
         else:
             ActivateSystemButtom((255, 255, 255))
-
-        img_source = self.Game.Map.Map[self.Game.ActiveSystem].TileImage if self.Game.ActiveSystem != None else self.Game.Map.Map[self.selectedTile].TileImage
-        img = img_source.get_scaled_tile(self.radius * 3)
-        self.Screen.blit(img, (self.width * 0.02, self.height * 0.2))
 
         if self.Game.ActiveSystem != None:
             EndTurnButton()

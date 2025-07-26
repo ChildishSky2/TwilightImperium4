@@ -70,7 +70,8 @@ class UnitManager:
                 cost=0.5,
                 combat_value=[[], [9]],
                 RequiresCarry=True,
-                hits=1
+                hits=1,
+                image_path=f"Assets\\Units\\Fighter.png"
             ),
             UnitType.DESTROYER: UnitStats(
                 name="Destroyer",
@@ -78,7 +79,8 @@ class UnitManager:
                 combat_value=[[], [9]],
                 movement=2,
                 hits=1,
-                anti_fighter_barrage=(2, 9)
+                anti_fighter_barrage=(2, 9),
+                image_path=f"Assets\\Units\\Destroyer.png"
             ),
             UnitType.CRUISER: UnitStats(
                 name="Cruiser",
@@ -86,7 +88,8 @@ class UnitManager:
                 combat_value=[[], [7]],
                 movement=2,
                 hits=1,
-                capacity=1
+                capacity=1,
+                image_path=f"Assets\\Units\\Cruiser.png"
             ),
             UnitType.CARRIER: UnitStats(
                 name="Carrier",
@@ -94,7 +97,8 @@ class UnitManager:
                 combat_value=[[], [9]],
                 movement=1,
                 hits=1,
-                capacity=4
+                capacity=4,
+                image_path=f"Assets\\Units\\Carrier.png"
             ),
             UnitType.DREADNOUGHT: UnitStats(
                 name="Dreadnought",
@@ -114,36 +118,41 @@ class UnitManager:
                 movement=1,
                 hits=1,
                 sustain_damage=True,
-                capacity=3
+                capacity=3,
+                image_path="Assets\\Units\\Flagship.png"
             ),
             UnitType.WAR_SUN: UnitStats(
-                name="War Sun",
+                name="WarSun",
                 cost=12,
                 combat_value=[[], [3, 3, 3]],
                 movement=2,
                 hits=1,
                 bombardment=3,
                 sustain_damage=True,
-                capacity=6
+                capacity=6,
+                image_path="Assets\\Units\\WarSun.png"
             ),
             UnitType.INFANTRY: UnitStats(
                 name="Infantry",
                 cost=0.5,
                 combat_value=[[8], []],
                 RequiresCarry=True,
-                hits=1
+                hits=1,
+                image_path="Assets\\Units\\Infantry.png"
             ),
             UnitType.SPACE_DOCK: UnitStats(
-                name="Space Dock",
+                name="SpaceDock",
                 cost=4,
                 hits=1,
-                production=2
+                production=2,
+                image_path="Assets\\Units\\SpaceDock.png"
             ),
             UnitType.PDS: UnitStats(
                 name="PDS",
                 cost=2,
                 hits=1,
-                planetary_shield=True
+                planetary_shield=True,
+                image_path="Assets\\Units\\PDS.png"
             )
         }
     

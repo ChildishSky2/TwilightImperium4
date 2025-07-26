@@ -26,6 +26,7 @@ class Game:
 
         self.Speaker = 2 # idx of current speaker
 
+        self.SelectedSystem : int = None
         self.ActiveSystem : int = None
 
         self.PublicObjectives = [[], []]
@@ -79,7 +80,7 @@ class Game:
             if not self.Players[self.Turn].Passed or self.Turn == start_turn:
                 break
         self.ActiveSystem = None
-  
+
     def ActivateSystem(self, system_idx : int):
         self.ActiveSystem = system_idx
         self.Map.Map[system_idx].ActivateSystem(self.Turn)

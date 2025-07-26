@@ -39,9 +39,9 @@ class UnitType(Enum):
     CARRIER = "Carrier"
     DREADNOUGHT = "Dreadnought"
     FLAGSHIP = "Flagship"
-    WAR_SUN = "War Sun"
+    WAR_SUN = "WarSun"
     INFANTRY = "Infantry"
-    SPACE_DOCK = "Space Dock"
+    SPACE_DOCK = "SpaceDock"
     PDS = "PDS"
     MECH = "Mech"
 

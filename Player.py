@@ -2,7 +2,6 @@
 # List of techs
 # Units
 
-from functools import lru_cache
 from ImageCache import ImageCache
 import Race
 from typing import Literal
@@ -67,7 +66,6 @@ class Player:
     def SetStrategyToken(self, path = "Assets\\RaceItems\\TacticsToken.png"):
         self.Token = ImageCache(path, 10)
 
-    @lru_cache(maxsize=8)
     def GetTokenImg(self, radius):
         return self.Token.get_scaled_tile(radius)
     

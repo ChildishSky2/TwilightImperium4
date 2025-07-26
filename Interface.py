@@ -108,10 +108,14 @@ class UserInterface():
         """Draw a circular grid of hexagons using cached tiles."""
         circle_radius = self.radius / 1.75
         token_size = int(self.radius / 4)
+        ship_circle_radius = circle_radius * 0.75
 
         def GetTokenPos(blits : list, tile : Tile, center_x, center_y):
-            num_planets = len(tile.Planets)
             activated_players = tile.GetPlayersWhoActivatedSystem()
+            if len(activated_players) == 0:
+                return
+
+            num_planets = len(tile.Planets)
             num_tokens = len(activated_players)
 
             match num_planets:
@@ -165,46 +169,51 @@ class UserInterface():
                         token_img = self.Game.Players[player_idx].GetTokenImg(token_size)
                         blits.append((token_img, (token_x, token_y)))
 
-        # Batch collect all ship blits
-        tile_blits = []
-        ship_blits = []
-        token_blits = []
+        def GetShipBlits(blits : list, tile : Tile, center_x, center_y):
+            ships = tile.GetShipsInSystem()
+            num_ships = len(ships)
+
+            if num_ships == 0:
+                return
+            
+            player_color = self.Game.Players[tile.ShipOwner].Colour
+    
+    
+            if num_ships == 1:
+                # Single ship goes in the center
+                ship_image = self.Game.UnitManager.get_unit_image(ships[0], player_color, 15)
+                blits.append((ship_image, (center_x - 5, center_y - 5)))
+            else:
+                # Multiple ships arranged in a circle
+                for ship_idx, ship in enumerate(ships):
+                    # Calculate angle for each ship (evenly distributed around the circle)
+                    angle = (ship_idx * 2 * math.pi) / num_ships
+            
+                    # Calculate position on the circle
+                    ship_x = center_x + ship_circle_radius * math.cos(angle) - 5
+                    ship_y = center_y + ship_circle_radius * math.sin(angle) - 5
+            
+                    ship_image = self.Game.UnitManager.get_unit_image(ship, player_color, 15)
+                    blits.append((ship_image, (ship_x, ship_y)))
+
+        # Batch collect all blits
+        blits = []
 
         x_adjust = 0.85 * self.radius
         y_adjust = 0.9 * self.radius
 
         for index, tile in enumerate(self.Game.Map.Map):
-            tile_blits.append((tile.TileImage.get_scaled_tile(self.radius), self.MapHexPositions[index]))
+            blits.append((tile.TileImage.get_scaled_tile(self.radius), self.MapHexPositions[index]))
 
-            activated_players = tile.GetPlayersWhoActivatedSystem()
 
             x, y = self.MapHexPositions[index]
             
-            #if more than 0 tokens in a system, then we nneed to draw the system
-            if len(activated_players) > 0:
-                GetTokenPos(token_blits, tile, x + x_adjust, y + y_adjust)
+            GetTokenPos(blits, tile, x + x_adjust, y + y_adjust)
+            GetShipBlits(blits, tile, x + x_adjust, y + y_adjust)
 
-            if len(tile.ShipsInSpace) > 0:
-                for ship_idx, ship in enumerate(tile.GetShipsInSystem()):
-                    player_color = self.Game.Players[tile.ShipOwner].Colour
-                    
-                    # Get ship image from UnitManager (now handles caching internally)
-                    ship_image = self.Game.UnitManager.get_unit_image(ship, player_color, 10)
-                    
-                    if ship_image:  # Only add if image exists
-                        # Offset ships so they don't overlap
-                        offset_x = x_adjust + (ship_idx * 15)  # 15 pixel offset per ship
-                        offset_y = y_adjust + (ship_idx * 5)   # Small vertical offset
-                        ship_blits.append((ship_image, (offset_x + x, offset_y + y)))
+        if blits:
+            self.Screen.blits(blits)
 
-        if tile_blits:
-            self.Screen.blits(tile_blits)
-        
-        if token_blits:
-            self.Screen.blits(token_blits)
-
-        if ship_blits:
-            self.Screen.blits(ship_blits)
 
         return
 

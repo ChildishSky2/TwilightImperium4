@@ -6,8 +6,6 @@ import math
 
 import Game
 from ImageCache import ImageCache
-from Game_Enums import UnitType
-from Map import Planet, Tile
 #view
 
 class UserInterface():
@@ -110,7 +108,7 @@ class UserInterface():
         token_size = int(self.radius / 4)
         ship_circle_radius = circle_radius * 0.75
 
-        def GetTokenPos(blits : list, tile : Tile, center_x, center_y):
+        def GetTokenPos(blits : list, tile, center_x, center_y):
             activated_players = tile.GetPlayersWhoActivatedSystem()
             if len(activated_players) == 0:
                 return
@@ -169,7 +167,7 @@ class UserInterface():
                         token_img = self.Game.Players[player_idx].GetTokenImg(token_size)
                         blits.append((token_img, (token_x, token_y)))
 
-        def GetShipBlits(blits : list, tile : Tile, center_x, center_y):
+        def GetShipBlits(blits : list, tile, center_x, center_y):
             ships = tile.GetShipsInSystem()
             num_ships = len(ships)
 
@@ -302,7 +300,7 @@ class UserInterface():
                         rect.bottom - 2*padding
                     )
                 )
-                self.Screen.blit( Passed_Text, Passed_Rect)
+                self.Screen.blit(Passed_Text, Passed_Rect)
 
             # Calculate technology font size - make it smaller than player name but still scaled
             tech_font_size = max(12, font_size)  # Minimum tech font size

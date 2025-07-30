@@ -33,7 +33,7 @@ class ImageCache:
             scaled_tile.set_alpha(self.alpha)
        
         self.cache[base_radius] = scaled_tile
-   
+    
     def get_scaled_tile(self, radius: int) -> pygame.Surface:
         """Get a scaled tile, generating it if not cached"""
         if radius not in self.cache:

@@ -6,6 +6,8 @@ import math
 
 import Game
 from ImageCache import ImageCache
+from Map import Tile
+from Game_Enums import UnitType
 #view
 
 class UserInterface():
@@ -194,6 +196,26 @@ class UserInterface():
                     ship_image = self.Game.UnitManager.get_unit_image(ship, player_color, 15)
                     blits.append((ship_image, (ship_x, ship_y)))
 
+        def GetGFBlits(blits : list, tile : Tile, center_x, center_y): 
+            #no planets in system
+            if len(tile.Planets) == 0:
+                if tile.InfantryInSpace == 0:
+                    Inf_image = self.Game.UnitManager.get_unit_image(UnitType.INFANTRY, self.Game.Players[tile.ShipOwner].Colour, 15)
+                    blits.append((Inf_image, (center_x, center_y)))
+
+                if tile.MechsInSpace == 0:
+                    Mech_image = self.Game.UnitManager.get_unit_image(UnitType.MECH, self.Game.Players[tile.ShipOwner].Colour, 15)
+                    blits.append((Mech_image, (center_x, center_y)))
+                    pass
+
+
+            match len(tile.Planets):
+                case 0:
+                    pass
+                case _:
+                    pass
+            pass
+
         # Batch collect all blits
         blits = []
 
@@ -205,6 +227,7 @@ class UserInterface():
 
             blits.append((tile.TileImage.get_scaled_tile(self.radius), self.MapHexPositions[index]))
             GetTokenPos(blits, tile, x + x_adjust, y + y_adjust)
+            GetGFBlits(blits, tile, x + x_adjust, y + y_adjust)
             GetShipBlits(blits, tile, x + x_adjust, y + y_adjust)
 
         if blits:

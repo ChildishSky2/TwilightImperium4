@@ -140,6 +140,15 @@ class UnitManager:
                 hits=1,
                 image_path="Assets\\Units\\Infantry.png"
             ),
+            UnitType.MECH: UnitStats(
+                name="Mech",
+                cost=2,
+                combat_value=[[6], []],
+                RequiresCarry=True,
+                sustain_damage=True,
+                hits=1,
+                image_path="Assets\\Units\\Mech.png"
+            ),
             UnitType.SPACE_DOCK: UnitStats(
                 name="SpaceDock",
                 cost=4,

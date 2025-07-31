@@ -45,9 +45,9 @@ class Tile:
         self.ActivatedBy : list[int] = []
 
         #For controlling the current ships in the space area of the system
-        self.ShipsInSpace : list[UnitType] = []#UnitType.DREADNOUGHT, UnitType.CARRIER, UnitType.CRUISER, UnitType.WAR_SUN]
-        self.InfantryInSpace : int = 0
-        self.MechsInSpace : int = 0
+        self.ShipsInSpace : list[UnitType] = [UnitType.DREADNOUGHT, UnitType.CARRIER, UnitType.CRUISER, UnitType.WAR_SUN]
+        self.InfantryInSpace : int = 1
+        self.MechsInSpace : int = 1
         self.ShipOwner = 1
     
     def ActivateSystem(self, PlayerID : int):

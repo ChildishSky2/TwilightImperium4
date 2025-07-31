@@ -90,10 +90,14 @@ class UserInterface():
     
         return positions
 
-    def _calculate_active_system(self):
+    def _calculate_button_sizes(self):
         self.PassTurnButton = pygame.Rect(self.width * 0.045, self.height * 0.8, 110, 30)
         self.ActivateSystemButton = pygame.Rect(self.width * 0.045, self.height * 0.6, 210, 30)
         self.EndTurnButton = pygame.Rect(self.width * 0.045, self.height * 0.8, 110, 30)
+
+        self.HideShipsButton = pygame.Rect(self.width * 0.25, self.height * 0.9, 130, 30)
+        self.HideGFButton = pygame.Rect(self.width * 0.45, self.height * 0.9, 130, 30)
+        self.HideTokensButton = pygame.Rect(self.width * 0.6, self.height * 0.9, 140, 30)
 
     def _calc_resize(self):
         self.width = self.Screen.get_width()
@@ -102,7 +106,7 @@ class UserInterface():
 
         self.MapHexPositions = self._calculate_hex_grid_positions(self.Game.Map.max_rings)
         self.PlayerAreaPositions = self._calculate_player_areas(len(self.Game.Players))
-        self._calculate_active_system()
+        self._calculate_button_sizes()
 
     def _draw_Map(self):
         """Draw a circular grid of hexagons using cached tiles."""
@@ -110,7 +114,7 @@ class UserInterface():
         token_size = int(self.radius / 4)
         ship_circle_radius = circle_radius * 0.85
 
-        def GetTokenPos(blits : list, tile, center_x, center_y):
+        def GetTokenBlits(blits : list, tile, center_x, center_y):
             activated_players = tile.GetPlayersWhoActivatedSystem()
             if len(activated_players) == 0:
                 return
@@ -288,9 +292,12 @@ class UserInterface():
             x, y = self.MapHexPositions[index]
 
             blits.append((tile.TileImage.get_scaled_tile(self.radius), self.MapHexPositions[index]))
-            GetTokenPos(blits, tile, x + x_adjust, y + y_adjust)
-            GetGFBlits(blits, tile, x , y)
-            GetShipBlits(blits, tile, x + x_adjust, y + y_adjust)
+            if self.DisplayTokens:
+                GetTokenBlits(blits, tile, x + x_adjust, y + y_adjust)
+            if self.DisplayGF:
+                GetGFBlits(blits, tile, x , y)
+            if self.DisplayShips:
+                GetShipBlits(blits, tile, x + x_adjust, y + y_adjust)
 
         if blits:
             self.Screen.blits(blits)
@@ -452,59 +459,6 @@ class UserInterface():
 
         pass
 
-    def _handle_click(self, mouse_pos):
-        """Detect which hexagon was clicked."""
-
-        if self.selectedTile == None and self.Game.ActiveSystem == None:
-            if (self.PassTurnButton.left <= mouse_pos[0] <= self.PassTurnButton.right and
-                self.PassTurnButton.top <= mouse_pos[1] <= self.PassTurnButton.bottom):
-                self.Game.Pass()
-                self.selectedTile = None
-                return
-            
-        if self.selectedTile != None and self.Game.ActiveSystem == None:
-            if (self.ActivateSystemButton.left <= mouse_pos[0] <= self.ActivateSystemButton.right and
-                self.ActivateSystemButton.top <= mouse_pos[1] <= self.ActivateSystemButton.bottom):
-
-                #player has no tactics tokens left
-                if self.Game.Players[self.Game.Turn].TacticsTokens <= 0:
-                    return
-                
-                #Player has previously activated the system
-                if self.Game.Map.Map[self.selectedTile].CheckPlayerHasActivatedSystem(self.Game.Players[self.Game.Turn].PlayerID):
-                    return
-                
-                self.Game.ActivateSystem(self.selectedTile)
-                return
-            pass
-        
-        if self.Game.ActiveSystem != None:
-            if (self.EndTurnButton.left <= mouse_pos[0] <= self.EndTurnButton.right and
-                self.EndTurnButton.top <= mouse_pos[1] <= self.EndTurnButton.bottom):
-
-                self.Game.EndTurn()
-                self.selectedTile = None
-            return
-
-        #calculating from top left of hexagon
-        mouse_pos_x, mouse_pos_y = mouse_pos[0] - self.radius, mouse_pos[1] - self.radius
-        r2 = self.radius ** 2
-        for idx, pos in enumerate(self.MapHexPositions):
-            dx = mouse_pos_x - pos[0]
-            dy = mouse_pos_y - pos[1]
-            distance = dx**2 + dy**2
-
-            # Check if click is within hexagon
-            if distance < r2:
-                if self.Game.ActiveSystem:
-                    print(self.Game.Map.get_tile_distance(self.Game.ActiveSystem, idx))
-                else:
-                    #selecting a system
-                    self.selectedTile = idx
-                return
-        self.selectedTile = None
-        return
-
     def _draw_Active_System(self):
         #pass, end turn, undo buttons
         font = pygame.font.SysFont(None, 30)
@@ -564,6 +518,105 @@ class UserInterface():
 
         pass
 
+    def _draw_buttons(self):
+        font = pygame.font.SysFont(None, 30)
+        min_window_dim = min(self.ActivateSystemButton.width, self.ActivateSystemButton.height)
+        padding = max(2, int(min_window_dim * 0.2))
+
+        #Hide Ships Button
+        pygame.draw.rect(self.Screen, (0, 0, 0), self.HideShipsButton, 2)
+        text_surface = font.render("Hide Ships", True, (0, 0, 0))
+        text_rect = text_surface.get_rect(
+        topleft=(
+            self.HideShipsButton.left + 2 * padding,
+            self.HideShipsButton.top + padding
+            )
+        )
+        self.Screen.blit(text_surface, text_rect)
+
+        #Hide GF Button
+        pygame.draw.rect(self.Screen, (0, 0, 0), self.HideGFButton, 2)
+        text_surface = font.render("Hide GFs", True, (0, 0, 0))
+        text_rect = text_surface.get_rect(
+        topleft=(
+            self.HideGFButton.left + 2 * padding,
+            self.HideGFButton.top + padding
+            )
+        )
+        self.Screen.blit(text_surface, text_rect)
+
+        #Hide Tokens Button
+        pygame.draw.rect(self.Screen, (0, 0, 0), self.HideTokensButton, 2)
+        text_surface = font.render("Hide Tokens", True, (0, 0, 0))
+        text_rect = text_surface.get_rect(
+        topleft=(
+            self.HideTokensButton.left + 2 * padding,
+            self.HideTokensButton.top + padding
+            )
+        )
+        self.Screen.blit(text_surface, text_rect)
+
+        pass
+
+    def _handle_click(self, mouse_pos):
+        """Detect which hexagon was clicked."""
+        CheckButtonClick = lambda button_pos: button_pos.left <= mouse_pos[0] <= button_pos.right and button_pos.top <= mouse_pos[1] <= button_pos.bottom
+
+        if CheckButtonClick(self.HideGFButton):
+            self.DisplayGF = not self.DisplayGF
+        elif CheckButtonClick(self.HideShipsButton):
+            self.DisplayShips = not self.DisplayShips
+        elif CheckButtonClick(self.HideTokensButton):
+            self.DisplayTokens = not self.DisplayTokens
+
+        if self.selectedTile == None and self.Game.ActiveSystem == None:
+            if CheckButtonClick(self.PassTurnButton):
+                self.Game.Pass()
+                self.selectedTile = None
+                return
+            
+        if self.selectedTile != None and self.Game.ActiveSystem == None:
+        
+            if CheckButtonClick(self.ActivateSystemButton):
+
+                #player has no tactics tokens left
+                if self.Game.Players[self.Game.Turn].TacticsTokens <= 0:
+                    return
+                
+                #Player has previously activated the system
+                if self.Game.Map.Map[self.selectedTile].CheckPlayerHasActivatedSystem(self.Game.Players[self.Game.Turn].PlayerID):
+                    return
+                
+                self.Game.ActivateSystem(self.selectedTile)
+                return
+            pass
+        
+        if self.Game.ActiveSystem != None:
+            if CheckButtonClick(self.EndTurnButton):
+
+                self.Game.EndTurn()
+                self.selectedTile = None
+            return
+
+        #calculating from top left of hexagon
+        mouse_pos_x, mouse_pos_y = mouse_pos[0] - self.radius, mouse_pos[1] - self.radius
+        r2 = self.radius ** 2
+        for idx, pos in enumerate(self.MapHexPositions):
+            dx = mouse_pos_x - pos[0]
+            dy = mouse_pos_y - pos[1]
+            distance = dx**2 + dy**2
+
+            # Check if click is within hexagon
+            if distance < r2:
+                if self.Game.ActiveSystem:
+                    print(self.Game.Map.get_tile_distance(self.Game.ActiveSystem, idx))
+                else:
+                    #selecting a system
+                    self.selectedTile = idx
+                return
+        self.selectedTile = None
+        return
+
     def __init__(self, Game : Game.Game):
         self.Screen = pygame.display.set_mode(
             (1000, 720),
@@ -575,6 +628,10 @@ class UserInterface():
         self.Game = Game
 
         self._calc_resize()
+
+        self.DisplayGF = True
+        self.DisplayShips = True
+        self.DisplayTokens = True
 
         assert len(self.Game.Map.Map) == len(self.MapHexPositions), "Failed to intialise"
 
@@ -604,6 +661,7 @@ class UserInterface():
             self._draw_Map()
             self._draw_player_areas(Technology_symbols)
             self._draw_Active_System()
+            self._draw_buttons()
             pygame.display.flip()
 
         pygame.quit()

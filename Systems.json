@@ -177,9 +177,9 @@
         ["Planet", "Ashtroth", "Hazardous", 2, 0]
     ],
     "76" : [
-        ["Planet", "Rigel I", "Hazardous", 0, 1],
+        ["Planet", "Rigel III", "Hazardous", 1, 1],
         ["Planet", "Rigel II", "Hazardous", 1, 2],
-        ["Planet", "Rigel III", "Hazardous", 1, 1]
+        ["Planet", "Rigel I", "Hazardous", 0, 1]
     ],
     "77" : [
 

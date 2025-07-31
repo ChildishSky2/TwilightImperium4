@@ -7,20 +7,21 @@ class TechnologyTypes(Enum):
     Warfare = 4
 
 class ActivationPoint(Enum):
-    When_SystemActivation = 1
-    After_SystemActivation = 1
-    During_Movement = 2
-    After_Movement = 3
-    Start_SpaceCombat = 4
-    Start_Round_SpaceCombat = 5
-    End_Round_SpaceCombat = 6
-    Start_Invasion = 7
-    Start_GroundCombat = 8
-    Start_Round_GroundCombat = 9
-    End_Round_GroundCombat = 10
-    Capture_Planet = 11
-    Production = 12
-    EndOfTurn = 13
+    Start_Turn = 1
+    When_SystemActivation = 2
+    After_SystemActivation = 3
+    During_Movement = 4
+    After_Movement = 5
+    Start_SpaceCombat = 6
+    Start_Round_SpaceCombat = 7
+    End_Round_SpaceCombat = 8
+    Start_Invasion = 9
+    Start_GroundCombat = 10
+    Start_Round_GroundCombat = 11
+    End_Round_GroundCombat = 12
+    Capture_Planet = 13
+    Production = 14
+    EndOfTurn = 15
 
 #technologies.txt - 
 #write out the technologies as equations

@@ -17,8 +17,9 @@ class Planet:
 
         self.Tapped = True
 
-        self.Infantry = 0
-        self.OwnedBy = None#ID of owning player
+        self.Infantry = 1
+        self.Mechs = 1
+        self.OwnedBy = random.randint(0, 4)#ID of owning player
         pass
 
     def __str__(self):
@@ -28,6 +29,8 @@ class Tile:
     #Represents a single System
     def __init__(self):
         self.Planets : list[Planet] = []
+
+        self.PlanetsInExpected = True # if system has the planets in the reqular place for the tile
 
         self.ContainsAlpha : bool = False
         self.ContainsBeta : bool = False
@@ -42,9 +45,9 @@ class Tile:
         self.ActivatedBy : list[int] = []
 
         #For controlling the current ships in the space area of the system
-        self.ShipsInSpace : list[UnitType] = [UnitType.DREADNOUGHT, UnitType.CARRIER, UnitType.CRUISER, UnitType.WAR_SUN]
-        self.InfantryInSpace : int = 2
-        self.MechsInSpace : int = 1
+        self.ShipsInSpace : list[UnitType] = []#UnitType.DREADNOUGHT, UnitType.CARRIER, UnitType.CRUISER, UnitType.WAR_SUN]
+        self.InfantryInSpace : int = 0
+        self.MechsInSpace : int = 0
         self.ShipOwner = 1
     
     def ActivateSystem(self, PlayerID : int):
@@ -338,6 +341,6 @@ class System:
         for pos, Race in zip(positions, RaceList):
             T = Tile()
             T.TileImage = ImageCache(f"Races\\{''.join(Race.split(" "))}\\HomeSystem.jpg", 50)
-            self.Map[-(pos+1)] = T
+            self.Map[3 * (self.max_rings) * (self.max_rings-1) + 1 + pos] = T
             pass
         pass

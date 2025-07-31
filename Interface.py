@@ -108,7 +108,7 @@ class UserInterface():
         """Draw a circular grid of hexagons using cached tiles."""
         circle_radius = self.radius / 1.75
         token_size = int(self.radius / 4)
-        ship_circle_radius = circle_radius * 0.75
+        ship_circle_radius = circle_radius * 0.85
 
         def GetTokenPos(blits : list, tile, center_x, center_y):
             activated_players = tile.GetPlayersWhoActivatedSystem()
@@ -131,15 +131,26 @@ class UserInterface():
                         blits.append((token_img, (token_x, token_y)))
 
                 case 2:
-                    angle_step = math.pi / (num_tokens - 1) if num_tokens > 1 else 0
                     for i, player_idx in enumerate(activated_players):
-                        if i >= 3:
-                            angle = math.pi + 22.5 + i * angle_step
-                        else:
-                            angle = math.pi + 46 + i * angle_step
 
-                        token_x = center_x + circle_radius * math.cos(angle) - token_size / 2
-                        token_y = center_y + circle_radius * math.sin(angle) - token_size / 2
+                        arc1_start = 345
+                        arc1_span = 50 
+
+                        arc2_start = 120 
+                        arc2_span = 50
+
+                        position_ratio = i / (len(activated_players) - 1) if len(activated_players) > 1 else 0
+
+                        if position_ratio <= 0.5:
+                            arc_ratio = position_ratio * 2
+                            angle = arc1_start - (arc_ratio * arc1_span) 
+                        else: 
+                            arc_ratio = (position_ratio - 0.5) * 2
+                            angle = arc2_start + (arc_ratio * arc2_span)
+
+                        angle_rad = math.radians(angle)
+                        token_x = center_x + circle_radius * math.cos(angle_rad) - token_size / 2
+                        token_y = center_y + circle_radius * math.sin(angle_rad) - token_size / 2
 
                         token_img = self.Game.Players[player_idx].GetTokenImg(token_size)
                         blits.append((token_img, (token_x, token_y)))
@@ -182,7 +193,7 @@ class UserInterface():
             if num_ships == 1:
                 # Single ship goes in the center
                 ship_image = self.Game.UnitManager.get_unit_image(ships[0], player_color, 15)
-                blits.append((ship_image, (center_x - 5, center_y - 5)))
+                blits.append((ship_image, (center_x - 10, center_y - 10)))
             else:
                 # Multiple ships arranged in a circle
                 for ship_idx, ship in enumerate(ships):
@@ -190,27 +201,78 @@ class UserInterface():
                     angle = (ship_idx * 2 * math.pi) / num_ships
             
                     # Calculate position on the circle
-                    ship_x = center_x + ship_circle_radius * math.cos(angle) - 5
-                    ship_y = center_y + ship_circle_radius * math.sin(angle) - 5
+                    ship_x = center_x + ship_circle_radius * math.cos(angle) - 10
+                    ship_y = center_y + ship_circle_radius * math.sin(angle) - 10
             
                     ship_image = self.Game.UnitManager.get_unit_image(ship, player_color, 15)
                     blits.append((ship_image, (ship_x, ship_y)))
 
-        def GetGFBlits(blits : list, tile : Tile, center_x, center_y): 
+        def GetGFBlits(blits : list, tile : Tile, x, y):
             #no planets in system
-            if len(tile.Planets) == 0:
-                if tile.InfantryInSpace == 0:
-                    Inf_image = self.Game.UnitManager.get_unit_image(UnitType.INFANTRY, self.Game.Players[tile.ShipOwner].Colour, 15)
-                    blits.append((Inf_image, (center_x, center_y)))
+            if tile.InfantryInSpace != 0:
+                Inf_image = self.Game.UnitManager.get_unit_image(UnitType.INFANTRY, self.Game.Players[tile.ShipOwner].Colour, 7.5)
+                blits.append((Inf_image, (x + 0.3 * self.radius, y + 1.2 * self.radius)))
+                pass
 
-                if tile.MechsInSpace == 0:
-                    Mech_image = self.Game.UnitManager.get_unit_image(UnitType.MECH, self.Game.Players[tile.ShipOwner].Colour, 15)
-                    blits.append((Mech_image, (center_x, center_y)))
+            if tile.MechsInSpace != 0:
+                Mech_image = self.Game.UnitManager.get_unit_image(UnitType.MECH, self.Game.Players[tile.ShipOwner].Colour, 7.5)
+                blits.append((Mech_image, (x + 0.5 * self.radius, y + 1.2 * self.radius)))
+                pass
+
+        
+            if len(tile.Planets) == 0:
+                return
+            
+            if int(tile.TileNumber) in [25, 26, 64]:
+                if tile.Planets[0].Infantry > 0:
+                    Inf_image = self.Game.UnitManager.get_unit_image(UnitType.INFANTRY, self.Game.Players[tile.Planets[0].OwnedBy].Colour, 7.5)
+                    blits.append((Inf_image, (x + 0.6 * self.radius, y + 0.5 * self.radius)))
+
+                if tile.Planets[0].Mechs > 0:
+                    Mech_image = self.Game.UnitManager.get_unit_image(UnitType.MECH, self.Game.Players[tile.Planets[0].OwnedBy].Colour, 7.5)
+                    blits.append((Mech_image, (x + 0.8 * self.radius, y + 0.5 * self.radius)))
+
+                return
+
+        
+            match len(tile.Planets):
+                case 1:
+                    for Planet in tile.Planets:
+                        if Planet.Infantry > 0:
+                            Inf_image = self.Game.UnitManager.get_unit_image(UnitType.INFANTRY, self.Game.Players[Planet.OwnedBy].Colour, 7.5)
+                            blits.append((Inf_image, (x + 0.8 * self.radius, y +  0.8 * self.radius)))
+
+                        if Planet.Mechs > 0:
+                            Mech_image = self.Game.UnitManager.get_unit_image(UnitType.MECH, self.Game.Players[Planet.OwnedBy].Colour, 7.5)
+                            blits.append((Mech_image, (x + self.radius, y +  0.8 * self.radius)))
+                    pass
+                case 2:
+                    for Planet, pos in zip(tile.Planets, [
+                        (x + 0.6 * self.radius, y + 0.5 * self.radius),
+                        (x + self.radius, y + 1.2 * self.radius)
+                    ]):
+                        if Planet.Infantry > 0:
+                            Inf_image = self.Game.UnitManager.get_unit_image(UnitType.INFANTRY, self.Game.Players[Planet.OwnedBy].Colour, 7.5)
+                            blits.append((Inf_image, pos))
+
+                        if Planet.Mechs > 0:
+                            Mech_image = self.Game.UnitManager.get_unit_image(UnitType.MECH, self.Game.Players[Planet.OwnedBy].Colour, 7.5)
+                            blits.append((Mech_image, (pos[0] + 0.2 * self.radius, pos[1])))
                     pass
 
+                case 3:
+                    for Planet, pos in zip(tile.Planets, [
+                        (x + 0.2 * self.radius, y + 0.7 * self.radius),
+                        (x + self.radius, y + 0.4 * self.radius),
+                        (x + self.radius, y + 1.1 * self.radius)
+                    ]):
+                        if Planet.Infantry > 0:
+                            Inf_image = self.Game.UnitManager.get_unit_image(UnitType.INFANTRY, self.Game.Players[Planet.OwnedBy].Colour, 7.5)
+                            blits.append((Inf_image, pos))
 
-            match len(tile.Planets):
-                case 0:
+                        if Planet.Mechs > 0:
+                            Mech_image = self.Game.UnitManager.get_unit_image(UnitType.MECH, self.Game.Players[Planet.OwnedBy].Colour, 7.5)
+                            blits.append((Mech_image, (pos[0] + 0.2 * self.radius, pos[1])))
                     pass
                 case _:
                     pass
@@ -227,7 +289,7 @@ class UserInterface():
 
             blits.append((tile.TileImage.get_scaled_tile(self.radius), self.MapHexPositions[index]))
             GetTokenPos(blits, tile, x + x_adjust, y + y_adjust)
-            GetGFBlits(blits, tile, x + x_adjust, y + y_adjust)
+            GetGFBlits(blits, tile, x , y)
             GetShipBlits(blits, tile, x + x_adjust, y + y_adjust)
 
         if blits:
@@ -514,7 +576,7 @@ class UserInterface():
 
         self._calc_resize()
 
-        assert len(self.Game.Map.Map) == len(self.MapHexPositions), "Faiiled to intialise"
+        assert len(self.Game.Map.Map) == len(self.MapHexPositions), "Failed to intialise"
 
     def Main(self):
         Running = True
@@ -548,7 +610,7 @@ class UserInterface():
 
 
 G = Game.Game(10)
-G.SetPlayerNumbers(4)
+G.SetPlayerNumbers(6)
 G.GenerateMap()
 
 

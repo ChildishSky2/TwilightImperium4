@@ -1,27 +1,10 @@
 from enum import Enum
-
+from Game_Enums import Sub_Phase
 class TechnologyTypes(Enum):
     Propulsion = 1
     Cybernetic = 2
     Biological = 3
     Warfare = 4
-
-class ActivationPoint(Enum):
-    Start_Turn = 1
-    When_SystemActivation = 2
-    After_SystemActivation = 3
-    During_Movement = 4
-    After_Movement = 5
-    Start_SpaceCombat = 6
-    Start_Round_SpaceCombat = 7
-    End_Round_SpaceCombat = 8
-    Start_Invasion = 9
-    Start_GroundCombat = 10
-    Start_Round_GroundCombat = 11
-    End_Round_GroundCombat = 12
-    Capture_Planet = 13
-    Production = 14
-    EndOfTurn = 15
 
 #technologies.txt - 
 #write out the technologies as equations
@@ -46,7 +29,7 @@ class Technology:
                 Yellow_Prerequisites <= self.YellowReqs and 
                 Red_Prerequisites <= self.RedReqs)
     
-    def DoesTechActvate(self, Phase : ActivationPoint):
+    def DoesTechActivate(self, Phase : Sub_Phase):
         return Phase in self.ActivationWindow
 
     

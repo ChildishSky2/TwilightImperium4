@@ -62,3 +62,20 @@ class Race(Enum):
     Winnu = 14
     Yin = 15
     Yssaril = 16
+
+class Sub_Phase(Enum):
+    Start_Turn = 1
+    When_SystemActivation = 2
+    After_SystemActivation = 3
+    During_Movement = 4
+    After_Movement = 5
+    Start_SpaceCombat = 6
+    Start_Round_SpaceCombat = 7
+    End_Round_SpaceCombat = 8
+    Start_Invasion = 9
+    Start_GroundCombat = 10
+    Start_Round_GroundCombat = 11
+    End_Round_GroundCombat = 12
+    Capture_Planet = 13
+    Production = 14
+    EndOfTurn = 15

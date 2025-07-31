@@ -7,7 +7,7 @@ import math
 import Game
 from ImageCache import ImageCache
 from Map import Tile
-from Game_Enums import UnitType
+from Game_Enums import UnitType, Sub_Phase
 #view
 
 class UserInterface():
@@ -230,11 +230,22 @@ class UserInterface():
             if int(tile.TileNumber) in [25, 26, 64]:
                 if tile.Planets[0].Infantry > 0:
                     Inf_image = self.Game.UnitManager.get_unit_image(UnitType.INFANTRY, self.Game.Players[tile.Planets[0].OwnedBy].Colour, 7.5)
-                    blits.append((Inf_image, (x + 0.6 * self.radius, y + 0.5 * self.radius)))
+                    blits.append((Inf_image, (x + 0.6 * self.radius, y + 0.4 * self.radius)))
 
                 if tile.Planets[0].Mechs > 0:
                     Mech_image = self.Game.UnitManager.get_unit_image(UnitType.MECH, self.Game.Players[tile.Planets[0].OwnedBy].Colour, 7.5)
-                    blits.append((Mech_image, (x + 0.8 * self.radius, y + 0.5 * self.radius)))
+                    blits.append((Mech_image, (x + 0.8 * self.radius, y + 0.4 * self.radius)))
+
+                return
+            
+            elif int(tile.TileNumber) in [67, 68]:
+                if tile.Planets[0].Infantry > 0:
+                    Inf_image = self.Game.UnitManager.get_unit_image(UnitType.INFANTRY, self.Game.Players[tile.Planets[0].OwnedBy].Colour, 7.5)
+                    blits.append((Inf_image, (x + 0.6 * self.radius, y + 0.7 * self.radius)))
+
+                if tile.Planets[0].Mechs > 0:
+                    Mech_image = self.Game.UnitManager.get_unit_image(UnitType.MECH, self.Game.Players[tile.Planets[0].OwnedBy].Colour, 7.5)
+                    blits.append((Mech_image, (x + 0.8 * self.radius, y + 0.7 * self.radius)))
 
                 return
 

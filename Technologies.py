@@ -1,5 +1,5 @@
 from enum import Enum
-from Game_Enums import Sub_Phase
+from Game_Enums import Tactical_Action_Phases
 class TechnologyTypes(Enum):
     Propulsion = 1
     Cybernetic = 2
@@ -29,7 +29,7 @@ class Technology:
                 Yellow_Prerequisites <= self.YellowReqs and 
                 Red_Prerequisites <= self.RedReqs)
     
-    def DoesTechActivate(self, Phase : Sub_Phase):
+    def DoesTechActivate(self, Phase : Tactical_Action_Phases):
         return Phase in self.ActivationWindow
 
     

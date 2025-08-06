@@ -1,25 +1,25 @@
 from enum import Enum
 
 class Phases(Enum):
-    Strategy : 1
-    Action : 2
-    Status : 3
-    Agenda : 4
+    Strategy = "Strategy"
+    Action = "Action"
+    Status = "Status"
+    Agenda  = "Agenda"
 
 class ActionPhase(Enum):
-    Activate_Action_Card : 0
-    Activate_Strategy_Card : 1
-    Activate_System : 2
-    Move_Ships : 3
-    Offense_Space_Cannon : 4
-    Space_Combat : 5
-    Commit_GF : 6
-    Defensive_Space_Cannon : 7
-    Ground_Combat : 8
-    Production : 9
+    Activate_Action_Card = 0
+    Activate_Strategy_Card = 1
+    Activate_System = 2
+    Move_Ships = 3
+    Offense_Space_Cannon = 4
+    Space_Combat = 5
+    Commit_GF = 6
+    Defensive_Space_Cannon = 7
+    Ground_Combat = 8
+    Production = 9
 
 class PlanetTypes(Enum):
-    NoType  = 0
+    NoType = 0
     Hazardous = 1
     Cultural = 2
     Industrial = 3
@@ -63,19 +63,15 @@ class Race(Enum):
     Yin = 15
     Yssaril = 16
 
-class Sub_Phase(Enum):
+class Tactical_Action_Phases(Enum):
     Start_Turn = 1
-    When_SystemActivation = 2
-    After_SystemActivation = 3
-    During_Movement = 4
-    After_Movement = 5
-    Start_SpaceCombat = 6
-    Start_Round_SpaceCombat = 7
-    End_Round_SpaceCombat = 8
-    Start_Invasion = 9
-    Start_GroundCombat = 10
-    Start_Round_GroundCombat = 11
-    End_Round_GroundCombat = 12
-    Capture_Planet = 13
-    Production = 14
-    EndOfTurn = 15
+    SystemActivation = 2
+    Movement = 3
+    SpaceCombat = 4
+    Invasion = 5
+    Production = 6
+
+class ActionType(Enum):
+    Component = "Component"
+    Strategic = "Strategic"
+    Tactical = "Tactical"

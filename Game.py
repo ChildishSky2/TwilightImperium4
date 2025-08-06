@@ -5,11 +5,11 @@ import Map
 import Player
 import Technologies
 import BasicUnits
+from Phases import PhaseManager
 #https://www.redblobgames.com/grids/hexagons/
 
 import json
 import random
-from Game_Enums import Sub_Phase, Phases
 # Controls the game and acts as a manager for the map, players and units
 
 class Game:
@@ -21,8 +21,7 @@ class Game:
         self.VPtoWin : int = VPtoWin
 
         self.Turn = 0 # idx of the current player to action game
-        self.GamePhase : Phases = None
-        self.TurnPhase : Sub_Phase = None # go through all phases of the turn
+        self.PhaseManager : PhaseManager = PhaseManager("Action") # go through all phases of the turn
 
         self.Speaker = 2 # idx of current speaker
 
@@ -80,12 +79,16 @@ class Game:
             if not self.Players[self.Turn].Passed or self.Turn == start_turn:
                 break
         self.ActiveSystem = None
-        self.TurnPhase.value = 0
 
-    def ActivateSystem(self, system_idx : int):
-        self.ActiveSystem = system_idx
-        self.Map.Map[system_idx].ActivateSystem(self.Turn)
+    def SelectSystem(self, system_idx : int):
+        self.SelectedSystem = system_idx
+
+    def ActivateSystem(self):
+        self.ActiveSystem = self.SelectedSystem
+        self.Map.Map[self.ActiveSystem].ActivateSystem(self.Turn)
         self.Players[self.Turn].TacticsTokens -= 1
+
+        self.PhaseManager.SetTurnActionType("Tactical")
 
     def _LoadTechs(self):
         Techs = []
@@ -102,10 +105,3 @@ class Game:
     def GetPlayerColour(self, PlayerID):
         return self.Players[PlayerID].GetPlayerColour()
     
-    def MoveSubPhaseForwards(self):
-        if self.TurnPhase == Sub_Phase.EndOfTurn:
-            self.TurnPhase.value = 0
-        self.TurnPhase.value += 1
-
-    def GetCurrentSubPhase(self):
-        return self.TurnPhase

@@ -7,8 +7,14 @@ import math
 import Game
 from ImageCache import ImageCache
 from Map import Tile
-from Game_Enums import UnitType, Sub_Phase
+from Game_Enums import UnitType, Tactical_Action_Phases
+from enum import Enum
 #view
+
+class Views(Enum):
+    Map = 1
+    Objectives = 2
+    StrategyCards = 3
 
 class UserInterface():
     def _calculate_hex_grid_positions(self, rings):
@@ -90,13 +96,14 @@ class UserInterface():
     
         return positions
 
-    def _calculate_button_sizes(self):
+    def _calculate_buttons(self):
         self.PassTurnButton = pygame.Rect(self.width * 0.045, self.height * 0.8, 110, 30)
         self.ActivateSystemButton = pygame.Rect(self.width * 0.045, self.height * 0.6, 210, 30)
         self.EndTurnButton = pygame.Rect(self.width * 0.045, self.height * 0.8, 110, 30)
+        self.FinaliseMovementsButton = pygame.Rect(self.width * 0.045, self.height * 0.65, 210, 30)
 
         self.HideShipsButton = pygame.Rect(self.width * 0.25, self.height * 0.9, 130, 30)
-        self.HideGFButton = pygame.Rect(self.width * 0.45, self.height * 0.9, 130, 30)
+        self.HideGFButton = pygame.Rect(self.width * 0.4, self.height * 0.9, 130, 30)
         self.HideTokensButton = pygame.Rect(self.width * 0.6, self.height * 0.9, 140, 30)
 
     def _calc_resize(self):
@@ -106,7 +113,8 @@ class UserInterface():
 
         self.MapHexPositions = self._calculate_hex_grid_positions(self.Game.Map.max_rings)
         self.PlayerAreaPositions = self._calculate_player_areas(len(self.Game.Players))
-        self._calculate_button_sizes()
+        self._calculate_buttons()
+
 
     def _draw_Map(self):
         """Draw a circular grid of hexagons using cached tiles."""
@@ -511,20 +519,36 @@ class UserInterface():
             )
             self.Screen.blit(text_surface, text_rect)
         
-        if self.selectedTile == None and self.Game.ActiveSystem == None:
+        def FinaliseMovementsButton():
+            pygame.draw.rect(self.Screen, (0, 0, 0), self.FinaliseMovementsButton, 2)
+            text_surface = font.render("Finalise Movement", True, (0, 0, 0))
+            text_rect = text_surface.get_rect(
+            topleft=(
+                self.FinaliseMovementsButton.left + padding,
+                self.FinaliseMovementsButton.top + padding
+                )
+            )
+            self.Screen.blit(text_surface, text_rect)
+            return
+
+        def ShowActiveSystem():
+            img_source = self.Game.Map.Map[self.Game.ActiveSystem].TileImage if self.Game.ActiveSystem != None else self.Game.Map.Map[self.Game.SelectedSystem].TileImage
+            img = img_source.get_scaled_tile(self.radius * 3)
+            self.Screen.blit(img, (self.width * 0.02, self.height * 0.2))
+
+        if self.Game.SelectedSystem == None and self.Game.ActiveSystem == None:
             PassTurnButton()
             return
 
-        img_source = self.Game.Map.Map[self.Game.ActiveSystem].TileImage if self.Game.ActiveSystem != None else self.Game.Map.Map[self.selectedTile].TileImage
-        img = img_source.get_scaled_tile(self.radius * 3)
-        self.Screen.blit(img, (self.width * 0.02, self.height * 0.2))
+        ShowActiveSystem()
 
-        if self.selectedTile != None and self.Game.Map.Map[self.selectedTile].CheckPlayerHasActivatedSystem(self.Game.Players[self.Game.Turn].PlayerID):
+        if self.Game.SelectedSystem != None and self.Game.Map.Map[self.Game.SelectedSystem].CheckPlayerHasActivatedSystem(self.Game.Players[self.Game.Turn].PlayerID):
             ActivateSystemButtom((100, 100, 100))
         else:
             ActivateSystemButtom((255, 255, 255))
 
         if self.Game.ActiveSystem != None:
+            FinaliseMovementsButton()
             EndTurnButton()
 
         pass
@@ -534,60 +558,91 @@ class UserInterface():
         min_window_dim = min(self.ActivateSystemButton.width, self.ActivateSystemButton.height)
         padding = max(2, int(min_window_dim * 0.2))
 
-        #Hide Ships Button
-        pygame.draw.rect(self.Screen, (0, 0, 0), self.HideShipsButton, 2)
-        text_surface = font.render("Hide Ships", True, (0, 0, 0))
+        blits = []
+        if self.view == Views.Map:
+            #Hide Ships Button
+            pygame.draw.rect(self.Screen, (0, 0, 0), self.HideShipsButton, 2)
+            text_surface = font.render("Hide Ships", True, (0, 0, 0))
+            text_rect = text_surface.get_rect(
+            topleft=(
+                self.HideShipsButton.left + 2 * padding,
+                self.HideShipsButton.top + padding
+                )
+            )
+            blits.append((text_surface, text_rect))
+
+            #Hide GF Button
+            pygame.draw.rect(self.Screen, (0, 0, 0), self.HideGFButton, 2)
+            text_surface = font.render("Hide GFs", True, (0, 0, 0))
+            text_rect = text_surface.get_rect(
+            topleft=(
+                self.HideGFButton.left + 2 * padding,
+                self.HideGFButton.top + padding
+                )
+            )
+            blits.append((text_surface, text_rect))
+
+            #Hide Tokens Button
+            pygame.draw.rect(self.Screen, (0, 0, 0), self.HideTokensButton, 2)
+            text_surface = font.render("Hide Tokens", True, (0, 0, 0))
+            text_rect = text_surface.get_rect(
+            topleft=(
+                self.HideTokensButton.left + 2 * padding,
+                self.HideTokensButton.top + padding
+                )
+            )
+
+            blits.append((text_surface, text_rect))
+
+        trapezoid_points = [
+            (100, 0),   # Top left
+            (255, 0),   # Top right
+            (230, 30),  # Bottom right
+            (125, 30)   # Bottom left
+            ]
+        
+        #Draw Trapeze for Going to Objectives Screen
+        pygame.draw.polygon(self.Screen, (0, 0, 0), trapezoid_points, 3)
+        text_surface = font.render("Objectives", True, (0, 0, 0))
         text_rect = text_surface.get_rect(
         topleft=(
-            self.HideShipsButton.left + 2 * padding,
-            self.HideShipsButton.top + padding
+            125,
+            10
             )
         )
         self.Screen.blit(text_surface, text_rect)
-
-        #Hide GF Button
-        pygame.draw.rect(self.Screen, (0, 0, 0), self.HideGFButton, 2)
-        text_surface = font.render("Hide GFs", True, (0, 0, 0))
-        text_rect = text_surface.get_rect(
-        topleft=(
-            self.HideGFButton.left + 2 * padding,
-            self.HideGFButton.top + padding
-            )
-        )
-        self.Screen.blit(text_surface, text_rect)
-
-        #Hide Tokens Button
-        pygame.draw.rect(self.Screen, (0, 0, 0), self.HideTokensButton, 2)
-        text_surface = font.render("Hide Tokens", True, (0, 0, 0))
-        text_rect = text_surface.get_rect(
-        topleft=(
-            self.HideTokensButton.left + 2 * padding,
-            self.HideTokensButton.top + padding
-            )
-        )
-        self.Screen.blit(text_surface, text_rect)
-
         pass
+
+    def _display_StratCards(self, StratCards : list[ImageCache]):
+        min_window_dim = min(self.Screen.get_width(), self.Screen.get_height())
+        tech_symbol_size = int(min_window_dim * 0.16)
+        for idx, Card in enumerate(StratCards):
+            v = Card.get_scaled_tile(tech_symbol_size)
+            self.Screen.blit(v, (10 + v.get_width() * (idx%4) * 0.825, 0.1 * self.Screen.get_height() + v.get_height() * (idx // 4)))
+            pass
 
     def _handle_click(self, mouse_pos):
         """Detect which hexagon was clicked."""
         CheckButtonClick = lambda button_pos: button_pos.left <= mouse_pos[0] <= button_pos.right and button_pos.top <= mouse_pos[1] <= button_pos.bottom
 
+        
         if CheckButtonClick(self.HideGFButton):
             self.DisplayGF = not self.DisplayGF
+            return
         elif CheckButtonClick(self.HideShipsButton):
             self.DisplayShips = not self.DisplayShips
+            return
         elif CheckButtonClick(self.HideTokensButton):
             self.DisplayTokens = not self.DisplayTokens
+            return
 
-        if self.selectedTile == None and self.Game.ActiveSystem == None:
+        if self.Game.SelectedSystem == None and self.Game.ActiveSystem == None:
             if CheckButtonClick(self.PassTurnButton):
                 self.Game.Pass()
-                self.selectedTile = None
+                self.Game.SelectSystem(None)
                 return
-            
-        if self.selectedTile != None and self.Game.ActiveSystem == None:
-        
+
+        if self.Game.SelectedSystem != None and self.Game.ActiveSystem == None:       
             if CheckButtonClick(self.ActivateSystemButton):
 
                 #player has no tactics tokens left
@@ -595,10 +650,10 @@ class UserInterface():
                     return
                 
                 #Player has previously activated the system
-                if self.Game.Map.Map[self.selectedTile].CheckPlayerHasActivatedSystem(self.Game.Players[self.Game.Turn].PlayerID):
+                if self.Game.Map.Map[self.Game.SelectedSystem].CheckPlayerHasActivatedSystem(self.Game.Players[self.Game.Turn].PlayerID):
                     return
                 
-                self.Game.ActivateSystem(self.selectedTile)
+                self.Game.ActivateSystem()
                 return
             pass
         
@@ -606,8 +661,9 @@ class UserInterface():
             if CheckButtonClick(self.EndTurnButton):
 
                 self.Game.EndTurn()
-                self.selectedTile = None
+                self.Game.SelectSystem(None)
             return
+        
 
         #calculating from top left of hexagon
         mouse_pos_x, mouse_pos_y = mouse_pos[0] - self.radius, mouse_pos[1] - self.radius
@@ -620,12 +676,12 @@ class UserInterface():
             # Check if click is within hexagon
             if distance < r2:
                 if self.Game.ActiveSystem:
+                    #system has been activated - this would be for movement
                     print(self.Game.Map.get_tile_distance(self.Game.ActiveSystem, idx))
                 else:
-                    #selecting a system
-                    self.selectedTile = idx
+                    self.Game.SelectSystem(idx)
                 return
-        self.selectedTile = None
+        self.Game.SelectSystem(None)
         return
 
     def __init__(self, Game : Game.Game):
@@ -637,6 +693,7 @@ class UserInterface():
 
         self.selectedTile = None
         self.Game = Game
+        self.view = Views.StrategyCards
 
         self._calc_resize()
 
@@ -652,6 +709,10 @@ class UserInterface():
                               ImageCache("Assets\\Images\\cybernetic_symbol.png", self.radius), 
                               ImageCache("Assets\\Images\\propulsion_symbol.png", self.radius), 
                               ImageCache("Assets\\Images\\warfare_symbol.png", self.radius)]
+        
+        StrategyCard_Symbols = [
+            ImageCache(f"Assets\\Images\\StrategyCard_{r}.png", self.radius) for r in range(1, 9)
+        ]
 
         while Running:
             for event in pygame.event.get():
@@ -669,9 +730,14 @@ class UserInterface():
 
             self.Screen.fill((200, 200, 200))
 
-            self._draw_Map()
+            if self.view == Views.Map:
+                self._draw_Map()
+                self._draw_Active_System()
+            elif self.view == Views.StrategyCards:
+                self._display_StratCards(StrategyCard_Symbols)
+                pass
+
             self._draw_player_areas(Technology_symbols)
-            self._draw_Active_System()
             self._draw_buttons()
             pygame.display.flip()
 

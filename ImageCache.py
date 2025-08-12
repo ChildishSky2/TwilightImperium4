@@ -1,5 +1,7 @@
 import pygame
-
+if not pygame.get_init():
+    pygame.init()
+    pygame.display.set_mode((1, 1), pygame.HIDDEN)
 
 class ImageCache:
     """Base class for caching scaled images with color variations"""

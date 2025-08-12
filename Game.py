@@ -5,36 +5,41 @@ import Map
 import Player
 import Technologies
 import BasicUnits
+from typing import Literal
 from Phases import PhaseManager
 #https://www.redblobgames.com/grids/hexagons/
 
-import json
-import random
+from Objectives.Objectives import Objective
 # Controls the game and acts as a manager for the map, players and units
 
 class Game:
-    def __init__(self, VPtoWin):
+    def __init__(self, VPtoWin : Literal[10, 14]):
         self.Map : Map.System = None
         
         #player will be none is not in use
         self.Players : list[Player.Player] = None
+        self.SetPlayerNumbers(6)
         self.VPtoWin : int = VPtoWin
 
         self.Turn = 0 # idx of the current player to action game
-        self.PhaseManager : PhaseManager = PhaseManager("Action") # go through all phases of the turn
+        self.PhaseManager : PhaseManager = PhaseManager("Strategy") # go through all phases of the turn
 
         self.Speaker = 2 # idx of current speaker
 
-        self.SelectedSystem : int = None
+        self.SelectedSystem    : int = None
+        self.SelectedStratCard : int = None
+        self.SelectedObjective : int = None
+
         self.ActiveSystem : int = None
 
         self.PublicObjectives = [[], []]
-        self.AddPublicObjective()
-        self.AddPublicObjective()
+        self.AddNewPublicObjective()
+        self.AddNewPublicObjective()
 
         self.AvailableGeneralTechs = self._LoadTechs()
 
         self.UnitManager = BasicUnits.UnitManager()
+        print(self.PublicObjectives)
         pass
 
     def SetPlayerNumbers(self, NumberOfPlayers):
@@ -48,22 +53,6 @@ class Game:
         self.Map.LoadMap("Auto")
 
         self.Map.SetHomeSystems([i.Race.RaceName for i in self.Players])
-
-    def AddPublicObjective(self):
-        def Load(self, file):
-            data = json.load(file)
-            chosen = random.randint(1, len(data))
-            while data.get(str(chosen)) in self.PublicObjectives[0]:
-                chosen = random.randint(1, len(data))
-            self.PublicObjectives[0].append(data.get(str(chosen)))
-
-        if len(self.PublicObjectives[0]) < 5:
-            with open("Objectives\\Objectives_1Point.json", "r") as file:
-                Load(self, file)
-
-        elif len(self.PublicObjectives[1]) < 5:
-            with open("Objectives\\Objectives_2Point.json", "r") as file:
-                Load(self, file)
 
     def Pass(self):
         self.Players[self.Turn].Passed = True
@@ -105,3 +94,20 @@ class Game:
     def GetPlayerColour(self, PlayerID):
         return self.Players[PlayerID].GetPlayerColour()
     
+    def ConfirmStratCard(self):
+        self.Players[self.Turn].Select_Strategy_Cards(self.SelectedStratCard)
+
+    def AddNewPublicObjective(self):
+        if len(self.PublicObjectives[0]) < 5:
+            New_Obj = Objective(1)
+            New_Obj.LoadRandomObjective(self.PublicObjectives[0])
+            self.PublicObjectives[0].append(New_Obj)
+
+            return
+        
+        if len(self.PublicObjectives[1]) < 5:
+            New_Obj = Objective(2)
+            New_Obj.LoadRandomObjective(self.PublicObjectives[1])
+            self.PublicObjectives[1].append(New_Obj)
+
+            return

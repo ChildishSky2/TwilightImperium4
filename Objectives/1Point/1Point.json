@@ -1,0 +1,137 @@
+{
+    "Amass_Wealth" : {
+        "text" : "Spend 3 influence, 3 resources, and 3 trade goods",
+        "type" : "Spend",
+        "Resources" : 3,
+        "Influence" : 3,
+        "TradeGoods" : 3,
+        "Tokens" : 0
+    },
+    "Build_Defenses" : {
+        "text" : "Have 4 or more structures",
+        "type" : "Have",
+        "RequiredType" : "Structures",
+        "Quantity" : 4
+    },
+    "Corner_The_Market" : {
+        "text" : "Control 4 planets that each have the same planet trait",
+        "type" : "Control",
+        "Planets" : 4,
+        "Conditions" : ["Same Planet Trait"]
+    },
+    "Develop_Weaponry" : {
+        "text" : "Own 2 unit upgrade technologies",
+        "type" : "Own",
+        "Resource" : "technologies",
+        "Quantity" : 2,
+        "Conditions" : ["in each of 2 colors"]
+    },
+    "Discover_Lost_Outposts" : {
+        "text" : "Control 2 planets that have attachments",
+        "type" : "Control",
+        "Planets" : 2,
+        "Conditions" : ["have attachments"]
+    },
+    "Diversify_Research" : {
+        "text" : "Own 2 technologies in each of 2 colors",
+        "type" : "Own",
+        "Resource" : "technologies",
+        "Quantity" : 2,
+        "Conditions" : ["Unit Technologies"]
+    },
+    "Engineer_A_Marvel" : {
+        "text" : "Have your flagship or a war sun on the game board",
+        "type" : "Have",
+        "Resource" : "War Sun||FlagShip",
+        "Conditions" : []
+    },
+    "Erect_A_Monument" : {
+        "text" : "Spend 8 resources",
+        "type" : "Spend",
+        "Resources" : 8,
+        "Influence" : 0,
+        "TradeGoods" : 0,
+        "Tokens" : 0
+    },
+    "Expand_Borders" : {
+        "text" : "Control 6 planets in non-home systems",
+        "type" : "Control",
+        "Planets" : 6,
+        "Conditions" : ["in non-home systems"]
+    },
+    "Explore_Deep_Space" : {
+        "text" : "Have units in 3 systems that do not contain planets",
+        "type" : "Have",
+        "Resource" : "Ships",
+        "Quantity" : 3,
+        "Conditions" : ["Do not contain Planets"]
+    },
+    "Found_Research_Outposts" : {
+        "text" : "Control 3 planets that have technology specialties",
+        "type" : "Control",
+        "Planets" : 3,
+        "Conditions" : ["Have Technology specialties"]
+    },
+    "Improve_Infrastructure" : {
+        "text" : "Have structures on 3 planets outside of your home system",
+        "type" : "Control",
+        "Planets" : 3,
+        "Conditions" : ["Which have structures"]
+    },
+    "Intimidate_Council" : {
+        "text" : "Have 1 or more ships in 2 systems that are adjacent to Mecatol Rex",
+        "type" : "Have",
+        "Resource" : "Ships",
+        "Quantity" : 2,
+        "Conditions" : ["Adjacent to Mecatol"]
+    },
+    "Lead_From_The_Front" : {
+        "text" : "Spend a total of 3 tokens from your tactics and/or strategy pools",
+        "type" : "Spend",
+        "Resources" : 0,
+        "Influence" : 0,
+        "TradeGoods" : 0,
+        "Tokens" : 3
+    },
+    "Make_History" : {
+        "text" : "Have units in 2 systems that contain legendary planets, Mecatol Rex, or anomalies",
+        "type" : "Have",
+        "Resource" : "Units",
+        "Quantity" : "3",
+        "Conditions" : ["Contain Legendary Planets||Mecatol Rex||Anomalies"]
+    },
+    "Negotiate_Trade_Routes" : {
+        "text" : "Spend 5 trade goods",
+        "type" : "Spend",
+        "Resources" : 0,
+        "Influence" : 0,
+        "TradeGoods" : 5,
+        "Tokens" : 0
+    },
+    "Populate_The_Outer_Rim" : {
+        "text" : "Have units in 3 systems on the edge of the game board other than your home system",
+        "type" : "Have",
+        "Resource" : "Units",
+        "Quantity" : 3,
+        "Conditions" : ["Edge of the Game Board", "in non-home systems"]
+    },
+    "Push_Boundaries" : {
+        "text" : "Control more planets than each of 2 of your neighbors",
+        "type" : "Control",
+        "Conditions" : ["More than 2 neighbours"]
+    },
+    "Raise_A_Fleet" : {
+        "text" : "Have 5 or more non-fighter ships in 1 system",
+        "type" : "Have",
+        "Resource" : "Ships",
+        "Quantity" : 5
+    },
+    "Sway_The_Council" : {
+        "text" : "Spend 8 Influence",
+        "type" : "Spend",
+        "Resources" : 0,
+        "Influence" : 8,
+        "TradeGoods" : 0,
+        "Tokens" : 0
+    }
+}

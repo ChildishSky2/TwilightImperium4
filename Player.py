@@ -25,27 +25,34 @@ class Player:
         self.Priority = None
 
         self.Eliminated = False
-        self.Passed = False
+        self.Passed     = False
 
-        self.PropulsionTechs : list = []
-        self.BiologicalTechs : list = []
-        self.CyberneticTechs : list = []
-        self.WarfareTechs : list = []
+        self.PropulsionTechs  : list = []
+        self.BiologicalTechs  : list = []
+        self.CyberneticTechs  : list = []
+        self.WarfareTechs     : list = []
+        self.UnitTechnologies : list = []
 
         self.TotalTechs = 0
 
-        self.TacticsTokens = 3
-        self.FleetTokens = 3
+        self.TacticsTokens  = 3
+        self.FleetTokens    = 3
         self.StrategyTokens = 2
 
         self.Token : ImageCache = None
         self.SetStrategyToken()
 
-        self.Resources : int = 0
-        self.Influence : int = 0
+        self.OwnerToken : ImageCache = None
 
-        self.Commodities = 0
-        self.TradeGoods = 0
+        self.Resources          : int = 10
+        self.AvailableResources : int = 10
+        self.Influence          : int = 10
+        self.AvailableInfluence : int = 10
+
+
+        self.CommodityLimit = 0
+        self.Commodities    = 0
+        self.TradeGoods     = 10
         pass
 
     def __eq__(self, Another_Player):
@@ -69,9 +76,13 @@ class Player:
     def GetTokenImg(self, radius):
         return self.Token.get_scaled_tile(radius)
     
-    def Select_Strategy_Cards(self):
+    def Select_Strategy_Cards(self, CardID):
         #sets strategy card for player
+        self.StrategyCard = CardID
         pass
 
     def GetPlayerColour(self):
         return self.Colour
+
+    def GetScoringTokens(self):
+        return self.TacticsTokens + self.StrategyTokens

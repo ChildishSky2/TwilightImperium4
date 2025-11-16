@@ -1,6 +1,9 @@
+import os
+os.environ['SDL_VIDEO_WINDOW_POS'] = "%d, %d" %(0, 0)
+
 import pygame
 pygame.init()
-pygame.display.set_mode((1, 1), pygame.HIDDEN)
+pygame.display.set_mode((0, 0), pygame.HIDDEN)
 
 import math
 
@@ -108,6 +111,9 @@ class UserInterface():
 
         self.StratCardSelection = pygame.Rect(self.width * 0.3, self.height * 0.9, 210, 30)
 
+
+        self.MenuButton_Resume = pygame.Rect(self.width / 4, self.height * 0.05, self.width * 0.5, self.height * 0.01)
+
     def _calc_resize(self):
         self.width = self.Screen.get_width()
         self.height = self.Screen.get_height()
@@ -116,6 +122,9 @@ class UserInterface():
         self.MapHexPositions = self._calculate_hex_grid_positions(self.Game.Map.max_rings)
         self.PlayerAreaPositions = self._calculate_player_areas(len(self.Game.Players))
         self._calculate_buttons()
+
+
+        self.SettingsIconSize = int(min(self.width, self.height) * 0.016)
 
 
     def _draw_Map(self):
@@ -717,6 +726,14 @@ class UserInterface():
 
         pass
 
+    def _draw_Menu(self):
+        overlay = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 128))
+        self.Screen.blit(overlay, (0, 0))
+
+
+        pygame.draw.rect(self.Screen, (255, 255, 255), self.MenuButton_Resume)
+        pass
 
     def _handle_click_Map(self, mouse_pos):
         """Detect which hexagon was clicked."""
@@ -864,12 +881,19 @@ class UserInterface():
             ]
         ]
         
-        for item, view in zip(top_menu, Views):
+        settings_button = lambda point : (point[0] > self.width - (self.SettingsIconSize * 4) and point[1] < (self.SettingsIconSize * 2))
+
+        #print(mouse_pos, (self.width - (self.SettingsIconSize * 2), self.SettingsIconSize))
+        if settings_button(mouse_pos):
+            self.InMenu = True
+            return
+        
+        for item, view in zip(top_menu, Views):#changing screen - top menu
             if point_in_trapezoid(mouse_pos, item):
                 self.view = view
                 return
 
-        match self.view:
+        match self.view:# click inside window (not menu)
             case Views.Map:
                self._handle_click_Map(mouse_pos)
 
@@ -877,10 +901,13 @@ class UserInterface():
                 self._handle_click_StrategyCard(mouse_pos)
 
     def __init__(self, Game : Game.Game):
+        screen_size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+
         self.Screen = pygame.display.set_mode(
-            (1000, 720),
+            screen_size,
             pygame.RESIZABLE | pygame.SRCALPHA
         )
+
         pygame.display.set_caption('Twilight Imperium 4th edition')
 
         self.selectedTile = None
@@ -888,6 +915,8 @@ class UserInterface():
         self.view = Views.Map
 
         self._calc_resize()
+
+        self.InMenu = False
 
         self.DisplayGF = True
         self.DisplayShips = True
@@ -909,6 +938,8 @@ class UserInterface():
         ]
         ScoringBar = pygame.image.load(f"Assets\\Images\\ScoringBar_{self.Game.VPtoWin}Points.png").convert_alpha()
 
+        SettingsIcon = ImageCache("Assets\\SettingsIcon.png", self.radius)
+
         while Running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -916,7 +947,7 @@ class UserInterface():
                 elif event.type == pygame.VIDEORESIZE:
                     self.Screen = pygame.display.set_mode(
                         (event.w, event.h),
-                        pygame.RESIZABLE | pygame.SRCALPHA
+                        pygame.RESIZABLE | pygame.SRCALPHA | pygame.WINDOWEXPOSED
                     )
                     self._calc_resize()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -925,10 +956,19 @@ class UserInterface():
 
             self.Screen.fill((200, 200, 200))
 
+            self.Screen.blit(
+                SettingsIcon.get_scaled_tile(self.SettingsIconSize),
+                (
+                    self.width - (self.SettingsIconSize * 2),
+                    0
+                )
+            )
+
             match self.view:
                 case Views.Map:
                     self._draw_Map()
                     self._draw_Active_System()
+
                 case Views.StrategyCards:
                     self._draw_StratCards(StrategyCard_Symbols)
                 
@@ -936,6 +976,8 @@ class UserInterface():
                     self._draw_Objectives(ScoringBar)
                     pass
                 
+            if self.InMenu:
+                self._draw_Menu()
 
             self._draw_player_areas(Technology_symbols)
             self._draw_buttons()

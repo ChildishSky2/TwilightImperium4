@@ -1,22 +1,24 @@
 TODO
 
+Wifi connections to other players
+Pause Button -> should show a menu for size adjustment + leaving server
+
+
+Button Sizes should scale with window size
 
 Build GUI
+ - Set Dimensions -> in pause meenu - player should be able to set screen resolution
  - add starting screen to app 
  - add strategy card selection screen
- - add 
+ - add agenda screen
+
+Readjust screen to check screeen size and adjust to fit
 
 fix the problem with text size not adjusting
 
-Create file to store home system tiles
-
 Investigate possible Multiplayer over wifi
-
-readjust System object to work for n number of rings
 
 Buttons for the active system - activate system, selecting ships to me moved there
 
 phases of a turn in action phase - taking planets
 
-
-either - for system containing ship of the player, or distance from Activated System

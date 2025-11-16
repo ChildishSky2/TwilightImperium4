@@ -39,7 +39,7 @@ class Game:
         self.AvailableGeneralTechs = self._LoadTechs()
 
         self.UnitManager = BasicUnits.UnitManager()
-        print(self.PublicObjectives)
+        #print(self.PublicObjectives)
         pass
 
     def SetPlayerNumbers(self, NumberOfPlayers):

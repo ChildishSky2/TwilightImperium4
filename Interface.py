@@ -20,7 +20,6 @@ class Views(Enum):
     Agendas = "Agendas"
 
 class ScreenResolutions(Enum):
-    R_480p = (640, 480)      # VGA standard
     R_600p = (800, 600)      # SVGA standard
     R_768p = (1024, 768)     # XGA standard
     R_720p = (1280, 720)     # HD ready
@@ -41,25 +40,18 @@ class ScreenResolutions(Enum):
         gcd = math.gcd(width, height)
         return f"{width // gcd}:{height // gcd}"
     
+    @property
+    def Resolution(self) -> str:
+        return f"{self.value[0]}x{self.value[1]}"
+    
     @staticmethod
-    def find_resolution(width: int, height : int) -> 'ScreenResolutions':
-        """
-        Find the closest matching resolution from predefined set.
-        Returns (closest_resolution, similarity_score)
-        """
+    def set_resolution(width: int, height : int) -> 'ScreenResolutions':
 
-        target_ratio = width / height
 
         for res in ScreenResolutions:
-            # Calculate similarity score based on both ratio and size
-            ratio_diff = abs(res.aspect_ratio - target_ratio)
-            size_diff = abs(res.value[0] - width) + abs(res.value[1] - height)
-            score = ratio_diff * 1000 + size_diff  # Weight ratio more heavily
+            if res.value == (width, height):
+                return res 
 
-
-
-            if score == 0:   # Perfect match
-                return res
 
 
         return ScreenResolutions.R_UNKNOWN # The given width, height is not an available resolution
@@ -784,31 +776,39 @@ class UserInterface():
 
         font = pygame.font.SysFont(None, 36)
 
+        button_info = [# button text, button rect, button Colour
+            ("Resume Game", self.MenuButton_Resume, None),
+            ("Full Screen" if not self.Windowed else "Windowed", self.MenuButton_FullScreen, None),
+            ("Exit Game", self.MenuButton_ExitGame, None),
+            (self.ScreenResolution.Resolution if self.ScreenResolution != ScreenResolutions.R_UNKNOWN else f"Unknown Resolution : {pygame.display.Info().current_w}x{pygame.display.Info().current_h}", self.MenuButton_CurrentResolution, None if self.Windowed else (100, 100, 100))
+        ]
 
-        pygame.draw.rect(self.Screen, (255, 255, 255), self.MenuButton_Resume)
-        pygame.draw.rect(self.Screen, (0, 0, 0), self.MenuButton_Resume, width=2)
+        for text, button, colour in button_info:
+            pygame.draw.rect(self.Screen, (255, 255, 255) if colour is None else colour, button)
+            pygame.draw.rect(self.Screen, (0, 0, 0), button, width=2)
 
-        text_surface = font.render("Resume Game", True, (0, 0, 0))
-        text_rect = text_surface.get_rect(center=self.MenuButton_Resume.center)
-        self.Screen.blit(text_surface, text_rect)
-
-        pygame.draw.rect(self.Screen, (255, 255, 255), self.MenuButton_FullScreen)
-        pygame.draw.rect(self.Screen, (0, 0, 0), self.MenuButton_FullScreen, width=2)
-        if self.Windowed:
-            text_surface = font.render("Windowed", True, (0, 0, 0))
-        else:
-            text_surface = font.render("Full Screen", True, (0, 0, 0))
+            text_surface = font.render(text, True, (0, 0, 0))
+            text_rect = text_surface.get_rect(center=button.center)
+            self.Screen.blit(text_surface, text_rect)
         
-        text_rect = text_surface.get_rect(center=self.MenuButton_FullScreen.center)
-        self.Screen.blit(text_surface, text_rect)
+        if self.ResolutionOptionsVisible:
+            i = 0
+            for res in ScreenResolutions:
+                if res == ScreenResolutions.R_UNKNOWN or res == self.ScreenResolution:
+                    continue
+                option_rect = pygame.Rect(
+                    self.MenuButton_CurrentResolution.left,
+                    self.MenuButton_CurrentResolution.bottom + i * (self.MenuButton_CurrentResolution.height + 5),
+                    self.MenuButton_CurrentResolution.width,
+                    self.MenuButton_CurrentResolution.height
+                )
+                pygame.draw.rect(self.Screen, (200, 200, 200), option_rect)
+                pygame.draw.rect(self.Screen, (0, 0, 0), option_rect, width=2)
 
-
-
-        pygame.draw.rect(self.Screen, (255, 255, 255), self.MenuButton_ExitGame)
-        pygame.draw.rect(self.Screen, (0, 0, 0), self.MenuButton_ExitGame, width=2)
-        text_surface = font.render("Exit Game", True, (0, 0, 0))
-        text_rect = text_surface.get_rect(center=self.MenuButton_ExitGame.center)
-        self.Screen.blit(text_surface, text_rect)
+                option_text_surface = font.render(res.Resolution, True, (0, 0, 0))
+                option_text_rect = option_text_surface.get_rect(center=option_rect.center)
+                self.Screen.blit(option_text_surface, option_text_rect)
+                i += 1
 
         pass
 
@@ -962,21 +962,47 @@ class UserInterface():
         
         settings_button = lambda point : (point[0] > self.width - (self.SettingsIconSize * 4) and point[1] < (self.SettingsIconSize * 2))
 
-        #print(mouse_pos, (self.width - (self.SettingsIconSize * 2), self.SettingsIconSize))
         if settings_button(mouse_pos):
             self.InMenu = not self.InMenu
             return
         
         if self.InMenu:# Menu is open - options to change settings in menu/resume game
+            if self.ResolutionOptionsVisible:
+                i = 0
+                for res in ScreenResolutions:
+                    if res == ScreenResolutions.R_UNKNOWN or res == self.ScreenResolution:
+                        continue
+                    option_rect = pygame.Rect(
+                        self.MenuButton_CurrentResolution.left,
+                        self.MenuButton_CurrentResolution.bottom + i * (self.MenuButton_CurrentResolution.height + 5),
+                        self.MenuButton_CurrentResolution.width,
+                        self.MenuButton_CurrentResolution.height
+                    )
+                    if option_rect.collidepoint(mouse_pos):
+                        self.ScreenResolution = res
+                        self.Screen = pygame.display.set_mode((self.ScreenResolution.value))
+                        self._apply_window_mode()
+                        self._calc_resize()
+                        self.ResolutionOptionsVisible = False
+                        return
+                    i += 1
+
             if self.MenuButton_Resume.collidepoint(mouse_pos):
                 self.InMenu = False
             elif self.MenuButton_FullScreen.collidepoint(mouse_pos):
                 self.Windowed = not self.Windowed
                 self._apply_window_mode()
                 self._calc_resize()
+            elif self.MenuButton_CurrentResolution.collidepoint(mouse_pos):
+                if not self.Windowed:
+                    return #cannot change resolution in fullscreen
+                self.ResolutionOptionsVisible = True
+                return
             elif self.MenuButton_ExitGame.collidepoint(mouse_pos):
                 pygame.quit()
                 exit()
+
+            self.ResolutionOptionsVisible = False
             return #ignore clicks when in menu except for menu options
         
         for item, view in zip(top_menu, Views):#changing screen - top menu
@@ -1015,6 +1041,8 @@ class UserInterface():
         self.DisplayShips = True
         self.DisplayTokens = True
 
+
+        self.ResolutionOptionsVisible = False
         self.Objectives_Public = True
 
         # create the initial display according to Windowed flag

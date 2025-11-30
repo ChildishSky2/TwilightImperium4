@@ -7,12 +7,10 @@ Pause Button -> should show a menu for size adjustment + leaving server
 Button Sizes should scale with window size
 
 Build GUI
- - Set Dimensions -> in pause meenu - player should be able to set screen resolution
- - add starting screen to app 
+ - Set Dimensions -> in pause menu - player should be able to set screen resolution
+ - add starting screen to app
  - add strategy card selection screen
  - add agenda screen
-
-Readjust screen to check screeen size and adjust to fit
 
 fix the problem with text size not adjusting
 

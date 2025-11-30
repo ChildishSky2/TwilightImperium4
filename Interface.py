@@ -46,13 +46,9 @@ class ScreenResolutions(Enum):
     
     @staticmethod
     def set_resolution(width: int, height : int) -> 'ScreenResolutions':
-
-
         for res in ScreenResolutions:
             if res.value == (width, height):
                 return res 
-
-
 
         return ScreenResolutions.R_UNKNOWN # The given width, height is not an available resolution
 

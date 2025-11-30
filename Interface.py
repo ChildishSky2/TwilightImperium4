@@ -1,5 +1,5 @@
 import os
-os.environ['SDL_VIDEO_WINDOW_POS'] = "%d, %d" %(0, 0)
+os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 import pygame
 pygame.init()
@@ -18,6 +18,52 @@ class Views(Enum):
     Map = "Map"
     StrategyCards = "Strategy Cards"
     Agendas = "Agendas"
+
+class ScreenResolutions(Enum):
+    R_480p = (640, 480)      # VGA standard
+    R_600p = (800, 600)      # SVGA standard
+    R_768p = (1024, 768)     # XGA standard
+    R_720p = (1280, 720)     # HD ready
+    R_1080p = (1920, 1080)   # Full HD
+    R_1440p = (2560, 1440)   # QHD
+    R_4K = (3840, 2160)      # UHD
+    R_UNKNOWN = (0, 0)      # Unknown resolution
+
+    @property
+    def aspect_ratio(self) -> float:
+        """Get the decimal aspect ratio (width/height)"""
+        return self.value[0] / self.value[1]
+
+    @property
+    def simplified_ratio(self) -> str:
+        """Get the simplified aspect ratio (e.g., '16:9')"""
+        width, height = self.value
+        gcd = math.gcd(width, height)
+        return f"{width // gcd}:{height // gcd}"
+    
+    @staticmethod
+    def find_resolution(width: int, height : int) -> 'ScreenResolutions':
+        """
+        Find the closest matching resolution from predefined set.
+        Returns (closest_resolution, similarity_score)
+        """
+
+        target_ratio = width / height
+
+        for res in ScreenResolutions:
+            # Calculate similarity score based on both ratio and size
+            ratio_diff = abs(res.aspect_ratio - target_ratio)
+            size_diff = abs(res.value[0] - width) + abs(res.value[1] - height)
+            score = ratio_diff * 1000 + size_diff  # Weight ratio more heavily
+
+
+
+            if score == 0:   # Perfect match
+                return res
+
+
+        return ScreenResolutions.R_UNKNOWN # The given width, height is not an available resolution
+
 
 class UserInterface():
     def _calculate_hex_grid_positions(self, rings):
@@ -112,7 +158,12 @@ class UserInterface():
         self.StratCardSelection = pygame.Rect(self.width * 0.3, self.height * 0.9, 210, 30)
 
 
-        self.MenuButton_Resume = pygame.Rect(self.width / 4, self.height * 0.05, self.width * 0.5, self.height * 0.01)
+        self.MenuButton_Resume = pygame.Rect(self.width / 3, self.height * 0.1, self.width /3, self.height * 0.05)
+        self.MenuButton_FullScreen = pygame.Rect(self.width / 3, self.height * 0.2, self.width /3, self.height * 0.05)
+
+        self.MenuButton_CurrentResolution = pygame.Rect(self.width / 3, self.height * 0.3, self.width /3, self.height * 0.05)
+
+        self.MenuButton_ExitGame = pygame.Rect(self.width / 3, self.height * 0.7, self.width /3, self.height * 0.05)
 
     def _calc_resize(self):
         self.width = self.Screen.get_width()
@@ -731,9 +782,37 @@ class UserInterface():
         overlay.fill((0, 0, 0, 128))
         self.Screen.blit(overlay, (0, 0))
 
+        font = pygame.font.SysFont(None, 36)
+
 
         pygame.draw.rect(self.Screen, (255, 255, 255), self.MenuButton_Resume)
+        pygame.draw.rect(self.Screen, (0, 0, 0), self.MenuButton_Resume, width=2)
+
+        text_surface = font.render("Resume Game", True, (0, 0, 0))
+        text_rect = text_surface.get_rect(center=self.MenuButton_Resume.center)
+        self.Screen.blit(text_surface, text_rect)
+
+        pygame.draw.rect(self.Screen, (255, 255, 255), self.MenuButton_FullScreen)
+        pygame.draw.rect(self.Screen, (0, 0, 0), self.MenuButton_FullScreen, width=2)
+        if self.Windowed:
+            text_surface = font.render("Windowed", True, (0, 0, 0))
+        else:
+            text_surface = font.render("Full Screen", True, (0, 0, 0))
+        
+        text_rect = text_surface.get_rect(center=self.MenuButton_FullScreen.center)
+        self.Screen.blit(text_surface, text_rect)
+
+
+
+        pygame.draw.rect(self.Screen, (255, 255, 255), self.MenuButton_ExitGame)
+        pygame.draw.rect(self.Screen, (0, 0, 0), self.MenuButton_ExitGame, width=2)
+        text_surface = font.render("Exit Game", True, (0, 0, 0))
+        text_rect = text_surface.get_rect(center=self.MenuButton_ExitGame.center)
+        self.Screen.blit(text_surface, text_rect)
+
         pass
+
+
 
     def _handle_click_Map(self, mouse_pos):
         """Detect which hexagon was clicked."""
@@ -832,7 +911,7 @@ class UserInterface():
         print(self.Game.SelectedStratCard)
 
     def _Global_Handle_click(self, mouse_pos):
-        """The main funciton for handling on screen clicks"""
+        """The main function for handling on screen clicks"""
         def point_in_trapezoid(point, trapezoid_points):
             """Check if a point is inside a trapezoid using the ray casting algorithm"""
             x, y = point
@@ -885,8 +964,20 @@ class UserInterface():
 
         #print(mouse_pos, (self.width - (self.SettingsIconSize * 2), self.SettingsIconSize))
         if settings_button(mouse_pos):
-            self.InMenu = True
+            self.InMenu = not self.InMenu
             return
+        
+        if self.InMenu:# Menu is open - options to change settings in menu/resume game
+            if self.MenuButton_Resume.collidepoint(mouse_pos):
+                self.InMenu = False
+            elif self.MenuButton_FullScreen.collidepoint(mouse_pos):
+                self.Windowed = not self.Windowed
+                self._apply_window_mode()
+                self._calc_resize()
+            elif self.MenuButton_ExitGame.collidepoint(mouse_pos):
+                pygame.quit()
+                exit()
+            return #ignore clicks when in menu except for menu options
         
         for item, view in zip(top_menu, Views):#changing screen - top menu
             if point_in_trapezoid(mouse_pos, item):
@@ -900,23 +991,25 @@ class UserInterface():
             case Views.StrategyCards:
                 self._handle_click_StrategyCard(mouse_pos)
 
-    def __init__(self, Game : Game.Game):
-        screen_size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
 
-        self.Screen = pygame.display.set_mode(
-            screen_size,
-            pygame.RESIZABLE | pygame.SRCALPHA
-        )
+
+    def __init__(self, Game : Game.Game):
+
+        # store game reference early so resize can use it
+        self.Game = Game
+        info = pygame.display.Info()
+        self.Screen = pygame.display.set_mode((info.current_w, info.current_h))
 
         pygame.display.set_caption('Twilight Imperium 4th edition')
 
         self.selectedTile = None
-        self.Game = Game
         self.view = Views.Map
 
-        self._calc_resize()
 
         self.InMenu = False
+        # default to windowed mode; _apply_window_mode will create the display
+        self.Windowed = True
+        self.ScreenResolution = ScreenResolutions.find_resolution(info.current_w, info.current_h)
 
         self.DisplayGF = True
         self.DisplayShips = True
@@ -924,7 +1017,38 @@ class UserInterface():
 
         self.Objectives_Public = True
 
-        assert len(self.Game.Map.Map) == len(self.MapHexPositions), "Failed to intialise"
+        # create the initial display according to Windowed flag
+        self._apply_window_mode()
+        self._calc_resize()
+
+        print(self.ScreenResolution)
+
+        assert len(self.Game.Map.Map) == len(self.MapHexPositions), "Failed to initialise"
+
+    def _apply_window_mode(self):
+        """Apply the current window/fullscreen mode to the pygame display.
+
+        When windowed, use a resizable window (with decorations/title). When
+        fullscreen, switch to a fullscreen display.
+        """
+        info = pygame.display.Info()
+
+        if self.Windowed:
+            # Prefer current size if it is smaller than the display; otherwise use 80%
+            
+            cur_w, cur_h = self.Screen.get_size()
+            cur_h *= 0.96 if cur_h >= info.current_h else 1
+
+            # Create a standard window with decorations but not resizable
+            self.Screen = pygame.display.set_mode((cur_w, cur_h), pygame.SHOWN)
+        else:
+            self.Screen = pygame.display.set_mode(
+                (info.current_w, info.current_h), pygame.FULLSCREEN
+            )
+        self._calc_resize()
+
+        # Ensure title is set and window decorations are visible in windowed mode
+        pygame.display.set_caption('Twilight Imperium 4th edition')
 
     def Main(self):
         Running = True
@@ -944,12 +1068,6 @@ class UserInterface():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     Running = False
-                elif event.type == pygame.VIDEORESIZE:
-                    self.Screen = pygame.display.set_mode(
-                        (event.w, event.h),
-                        pygame.RESIZABLE | pygame.SRCALPHA | pygame.WINDOWEXPOSED
-                    )
-                    self._calc_resize()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
 
                     self._Global_Handle_click(event.pos)
@@ -993,4 +1111,5 @@ G.GenerateMap()
 
 u = UserInterface(G)
 u.Main()
+
 

@@ -89,6 +89,24 @@ class Objective:
     
     def __evalControlObjective(self, filters, PlayerTrying, GameMap):
         # Count planets that match the filters
+        print(filters)
+        if filters.get('PlanetTrait') == "Any":
+            R_Planet, G_Planet, B_Planet = 0, 0, 0
+            for tile in GameMap.Tiles:
+                for planet in tile.Planets:
+                    if planet.OwnedBy == PlayerTrying.PlayerID:
+                        if self.__matchesFilters(planet, filters):
+                            match planet.PlanetTrait:
+                                case "Red":
+                                    R_Planet += 1
+                                case "Green":
+                                    G_Planet += 1
+                                case "Blue":
+                                    B_Planet += 1
+            if any(count >= self.ObjectiveReqs['Planets'] for count in (R_Planet, G_Planet, B_Planet)):
+                self.ScoredBy.append(PlayerTrying.PlayerID)
+                return True
+            pass
         count = 0
         for tile in GameMap.Tiles:
             for planet in tile.Planets:

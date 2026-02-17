@@ -22,7 +22,7 @@ class Game:
         self.VPtoWin : int = VPtoWin
 
         self.Turn = 0 # idx of the current player to action game
-        self.PhaseManager : PhaseManager = PhaseManager("Strategy") # go through all phases of the turn
+        self.PhaseManager : PhaseManager = PhaseManager("Status") # go through all phases of the turn
 
         self.Speaker = 2 # idx of current speaker
 

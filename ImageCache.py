@@ -15,6 +15,8 @@ class ImageCache:
         self.color_cache = {}  # For colored images: {(r,g,b): surface}
         self.colored_scale_cache = {}  # For colored+scaled: {(radius, r,g,b): surface}
         self._generate_base_scale(base_size)
+
+        self.rect = None # rect attribute to be used for click detection, set externally when needed
    
     def _process_transparency(self):
         """Convert pure white pixels to transparent and set colorkey"""
@@ -162,3 +164,7 @@ class ImageCache:
             "colored_scale_cache_bytes": colored_scale_memory,
             "total_bytes": scale_memory + color_memory + colored_scale_memory
         }
+
+    def SetRect(self, rect: pygame.Rect):
+        """Set the rect for click detection"""
+        self.rect = rect

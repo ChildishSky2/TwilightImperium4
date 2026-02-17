@@ -768,11 +768,16 @@ class UserInterface():
             for i, Obj_list in enumerate(self.Game.PublicObjectives):
                 for l, Obj in enumerate(Obj_list):
                     assert isinstance(Obj.ObjectiveImage, ImageCache), "should be type "
-                    img = pygame.transform.smoothscale(Obj.ObjectiveImage.original_image, (int(min_window_dim) * 0.19, int(min_window_dim * 0.225)))
-                    self.Screen.blit(
-                        img,
-                        (0.025 * self.Screen.get_width() + l * (img.get_width() * 1.1), 0.28 * self.Screen.get_height() + 1.1 * i * img.get_height())
-                    )
+                    scaled = pygame.transform.smoothscale( Obj.ObjectiveImage.original_image, (int(min_window_dim * 0.19), int(min_window_dim * 0.225)) )
+
+                    x = 0.025 * self.Screen.get_width() + l * (scaled.get_width() * 1.1) 
+                    y = 0.28 * self.Screen.get_height() + 1.1 * i * scaled.get_height() 
+
+                    self.Screen.blit(scaled, (x, y)) # Update rect every frame
+                    Obj.ObjectiveImage.SetRect(pygame.Rect(x, y, scaled.get_width(), scaled.get_height()))
+
+                    if self.selectedObjective is not None and divmod(self.selectedObjective, 5) == (l, i):
+                        pygame.draw.rect(self.Screen, (255, 0, 0), Obj.ObjectiveImage.rect, width=3)
                     pass
             pass
         else:
@@ -921,6 +926,23 @@ class UserInterface():
                 self.Game.SelectedStratCard = idx + 1
         print(self.Game.SelectedStratCard)
 
+    def _handle_click_Objectives(self, mouse_pos):
+        """Clicks which occur only on the Objectives Page."""
+        if self.Game.PhaseManager.MainPhase != "Status":
+            return
+        
+        # If we're on the Objectives page, handle clicks on objectives
+        for idx, obj_List in enumerate(self.Game.PublicObjectives):
+            for idx2, obj in enumerate(obj_List):
+                if obj.ObjectiveImage.rect.collidepoint(mouse_pos):
+                    self.selectedObjective = idx2 * 5 + idx
+                    print(f"Selected Objective: {obj.ObjectiveName}")
+                    break
+            if self.selectedObjective is not None:
+                break
+        else:
+            self.selectedObjective = None
+
     def _Global_Handle_click(self, mouse_pos):
         """The main function for handling on screen clicks"""
         def point_in_trapezoid(point, trapezoid_points):
@@ -1028,6 +1050,9 @@ class UserInterface():
             case Views.StrategyCards:
                 self._handle_click_StrategyCard(mouse_pos)
 
+            case Views.Objectives:
+                self._handle_click_Objectives(mouse_pos)
+
 
 
     def __init__(self, Game : Game.Game):
@@ -1040,6 +1065,7 @@ class UserInterface():
         pygame.display.set_caption('Twilight Imperium 4th edition')
 
         self.selectedTile = None
+        self.selectedObjective = None
         self.view = Views.Map
 
 

@@ -30,8 +30,6 @@ class Tile:
     def __init__(self):
         self.Planets : list[Planet] = []
 
-        self.PlanetsInExpected = True # if system has the planets in the reqular place for the tile
-
         self.ContainsAlpha : bool = False
         self.ContainsBeta : bool = False
         self.ContainsGamma : bool = False
@@ -45,7 +43,7 @@ class Tile:
         self.ActivatedBy : list[int] = []
 
         #For controlling the current ships in the space area of the system
-        self.ShipsInSpace : list[UnitType] = [UnitType.DREADNOUGHT, UnitType.CARRIER, UnitType.CRUISER, UnitType.WAR_SUN]
+        self.ShipsInSpace : list[UnitType] = []
         self.InfantryInSpace : int = 1
         self.MechsInSpace : int = 1
         self.ShipOwner = 1
@@ -326,6 +324,7 @@ class System:
         pass
 
     def SetHomeSystems(self, RaceList : list[str]):
+        print(f"Setting home systems for races: {', '.join(RaceList)}")
         num_players = len(RaceList)
         match num_players:
             case 4:
@@ -335,12 +334,12 @@ class System:
             case 6:
                 positions = [0, 3, 6, 9, 12, 15]
             case _:
-                raise ValueError("Unable to have gae with given numbner of players")
+                raise ValueError("Unable to have game with given number of players")
     
 
         for pos, Race in zip(positions, RaceList):
             T = Tile()
-            T.TileImage = ImageCache(f"Races\\{''.join(Race.split(" "))}\\HomeSystem.jpg", 50)
+            T.TileImage = ImageCache(f"Assets\\RaceItems\\{Race.replace(' ', '_')}\\HomeSystem.png", 50)
             self.Map[3 * (self.max_rings) * (self.max_rings-1) + 1 + pos] = T
             pass
         pass

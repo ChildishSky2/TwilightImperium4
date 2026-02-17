@@ -1,4 +1,0 @@
-Sarween Tools, Y, 0, 0, 0, 0
-Graviton Laser System, Y, 0, 0, 1, 0
-Transit Diodes, Y, 0, 0, 2, 0
-Integrated Economy, Y, 0, 0, 3, 0

@@ -165,7 +165,6 @@ class UserInterface():
 
         self.SettingsIconSize = int(min(self.width, self.height) * 0.016)
 
-
     def _draw_Map(self):
         """Draw a circular grid of hexagons using cached tiles."""
         circle_radius = self.radius / 1.75
@@ -744,10 +743,26 @@ class UserInterface():
 
         scaled_image = pygame.transform.smoothscale(ScoringBar, (int(min_window_dim), int(min_window_dim * 0.2)))
 
-        self.Screen.blit(
-            scaled_image, 
-            (0.025 * self.Screen.get_width(), 0.05 * self.Screen.get_height())
-            )
+        bar_width = int(min_window_dim)
+        bar_height = int(min_window_dim * 0.2)
+
+        bar_x = int(0.025 * self.Screen.get_width())
+        bar_y = int(0.05 * self.Screen.get_height())
+
+        scaled_image = pygame.transform.smoothscale(ScoringBar, (bar_width, bar_height))
+        self.Screen.blit(scaled_image, (bar_x, bar_y))
+
+        
+        token_size = int(min_window_dim * 0.02)
+        for idx, Player in enumerate(self.Game.Players):
+            img = Player.GetOwnerTokenImg(token_size)
+            # VP position mapped to bar width
+            vp_ratio = Player.VP / (self.Game.VPtoWin + 1) # assuming max VP = 10
+
+            token_x = bar_x * 1.2 + int(vp_ratio * bar_width + (idx // 3) * 2 * token_size) # add extra spacing for tokens to avoid overlap at start of bar
+            # stack players vertically inside the bar
+            token_y = bar_y * 1.4 + int((idx % 3) * 2.5 * (token_size))
+            self.Screen.blit(img, (token_x, token_y))
 
         if self.Objectives_Public:
             for i, Obj_list in enumerate(self.Game.PublicObjectives):
@@ -772,14 +787,14 @@ class UserInterface():
 
         font = pygame.font.SysFont(None, 36)
 
-        button_info = [# button text, button rect, button Colour
+        Menubuttons_info = [# button text, button rect, button Colour
             ("Resume Game", self.MenuButton_Resume, None),
             ("Full Screen" if not self.Windowed else "Windowed", self.MenuButton_FullScreen, None),
             ("Exit Game", self.MenuButton_ExitGame, None),
             (self.ScreenResolution.Resolution if self.ScreenResolution != ScreenResolutions.R_UNKNOWN else f"Unknown Resolution : {pygame.display.Info().current_w}x{pygame.display.Info().current_h}", self.MenuButton_CurrentResolution, None if self.Windowed else (100, 100, 100))
         ]
 
-        for text, button, colour in button_info:
+        for text, button, colour in Menubuttons_info:
             pygame.draw.rect(self.Screen, (255, 255, 255) if colour is None else colour, button)
             pygame.draw.rect(self.Screen, (0, 0, 0), button, width=2)
 
@@ -1031,7 +1046,7 @@ class UserInterface():
         self.InMenu = False
         # default to windowed mode; _apply_window_mode will create the display
         self.Windowed = True
-        self.ScreenResolution = ScreenResolutions.find_resolution(info.current_w, info.current_h)
+        self.ScreenResolution = ScreenResolutions.set_resolution(info.current_w, info.current_h)
 
         self.DisplayGF = True
         self.DisplayShips = True
@@ -1044,8 +1059,6 @@ class UserInterface():
         # create the initial display according to Windowed flag
         self._apply_window_mode()
         self._calc_resize()
-
-        print(self.ScreenResolution)
 
         assert len(self.Game.Map.Map) == len(self.MapHexPositions), "Failed to initialise"
 

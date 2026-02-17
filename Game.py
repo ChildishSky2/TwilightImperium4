@@ -80,16 +80,12 @@ class Game:
         self.PhaseManager.SetTurnActionType("Tactical")
 
     def _LoadTechs(self):
-        Techs = []
-        with open("Technologies.txt", "r") as file:
-            line = file.readline().strip()
-            while line != "":
-                t = line.split(", ")
-                tech = Technologies.Technology(*t)
-                Techs.append(tech)
-
-                line = file.readline().strip()
-        return Techs
+        self.AvailableTechs = []
+        with open("Technologies.csv", "r") as file:
+            print(file.readline().strip()) # Print header line
+            for line in file:
+                self.AvailableTechs.append(Technologies.Technology(*line.strip().split(",")))
+        print(self.AvailableTechs)
     
     def GetPlayerColour(self, PlayerID):
         return self.Players[PlayerID].GetPlayerColour()

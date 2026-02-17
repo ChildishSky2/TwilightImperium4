@@ -17,7 +17,9 @@
         "text" : "Control 4 planets that each have the same planet trait",
         "type" : "Control",
         "Planets" : 4,
-        "Conditions" : ["Same Planet Trait"]
+        "Filters": { 
+            "PlanetTrait": "Same" 
+        }
     },
     "Develop_Weaponry" : {
         "text" : "Own 2 unit upgrade technologies",
@@ -30,7 +32,9 @@
         "text" : "Control 2 planets that have attachments",
         "type" : "Control",
         "Planets" : 2,
-        "Conditions" : ["have attachments"]
+        "Filters": { 
+            "HasAttachment": true 
+        }
     },
     "Diversify_Research" : {
         "text" : "Own 2 technologies in each of 2 colors",
@@ -57,7 +61,7 @@
         "text" : "Control 6 planets in non-home systems",
         "type" : "Control",
         "Planets" : 6,
-        "Conditions" : ["in non-home systems"]
+        "Filters": { "IsNonHome": true }
     },
     "Explore_Deep_Space" : {
         "text" : "Have units in 3 systems that do not contain planets",
@@ -70,13 +74,13 @@
         "text" : "Control 3 planets that have technology specialties",
         "type" : "Control",
         "Planets" : 3,
-        "Conditions" : ["Have Technology specialties"]
+        "Filters": { "HasTechSpecialty": true }
     },
     "Improve_Infrastructure" : {
         "text" : "Have structures on 3 planets outside of your home system",
         "type" : "Control",
         "Planets" : 3,
-        "Conditions" : ["Which have structures"]
+        "Filters": { "HasStructure": true, "IsNonHome": true }
     },
     "Intimidate_Council" : {
         "text" : "Have 1 or more ships in 2 systems that are adjacent to Mecatol Rex",

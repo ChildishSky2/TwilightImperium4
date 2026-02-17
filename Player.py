@@ -11,16 +11,12 @@ class Player:
     def __init__(self, ID):
         self.PlayerID = ID
 
-        self.PlayerToken = None
-
         self.PlayerName : str = "AlmondSpring250"
         self.Colour : tuple = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
         self.Race : Race = None
-        
-        self.SetRace(random.choice(["Arborec", "BaronyOfLetnev", "Lizix"]))
 
-        self.VP : int = 0 # initial victory points - always starts at 0
+        self.VP : int = random.randint(0, 10) # initial victory points - always starts at 0
         self.StrategyCard = None
         self.Priority = None
 
@@ -40,7 +36,6 @@ class Player:
         self.StrategyTokens = 2
 
         self.Token : ImageCache = None
-        self.SetStrategyToken()
 
         self.OwnerToken : ImageCache = None
 
@@ -53,6 +48,8 @@ class Player:
         self.CommodityLimit = 0
         self.Commodities    = 0
         self.TradeGoods     = 10
+
+        self.SetRace(random.choice(self.GetRaceOptions()))
         pass
 
     def __eq__(self, Another_Player):
@@ -61,20 +58,22 @@ class Player:
         
         return self.PlayerID == Another_Player.PlayerID
     
-    def SetRace(self, RaceName : Literal["Arborec", "BaronyOfLetnev", "Lizix"]):
-        match RaceName:
-            case "Arborec":
-                self.Race = Race.Arborec()
-            case "BaronyOfLetnev":
-                self.Race = Race.Letnev()
-            case "Lizix":
-                self.Race = Race.Lizix()
+    def GetRaceOptions(self):
+        return Race.GetRaceOptions()
     
-    def SetStrategyToken(self, path = "Assets\\RaceItems\\TacticsToken.png"):
-        self.Token = ImageCache(path, 10)
+    def SetRace(self, RaceName):
+        assert RaceName in self.GetRaceOptions(), f"Race '{RaceName}' is not a valid option! Valid options are: {', '.join(self.GetRaceOptions())}"
+        self.Race = Race.Race(RaceName)
+        self.Token = ImageCache(f"Assets\\RaceItems\\{RaceName.replace(' ', '_')}\\TacticsToken.png", 10)
+        self.OwnerToken = ImageCache(f"Assets\\RaceItems\\{RaceName.replace(' ', '_')}\\OwnerToken.png", 10)
+
+        
 
     def GetTokenImg(self, radius):
         return self.Token.get_scaled_tile(radius)
+    
+    def GetOwnerTokenImg(self, radius):
+        return self.OwnerToken.get_scaled_tile(radius)
     
     def Select_Strategy_Cards(self, CardID):
         #sets strategy card for player

@@ -9,7 +9,8 @@ class TechnologyTypes(Enum):
 #technologies.txt - 
 #write out the technologies as equations
 class Technology:
-    def __init__(self, TechName : str, TechType : TechnologyTypes, Blue_Prerequisites : int, Green_Prerequisites : int, Yellow_Prerequisites : int, Red_Prerequisites : int):
+    def __init__(self, TechID : int, TechName : str, TechType : TechnologyTypes, Blue_Prerequisites : int, Green_Prerequisites : int, Yellow_Prerequisites : int, Red_Prerequisites : int):
+        self.TechID = TechID
         self.TechnologyName = TechName
         self.TechType = TechType
 
@@ -17,6 +18,8 @@ class Technology:
         self.GreenReqs = Green_Prerequisites
         self.YellowReqs = Yellow_Prerequisites
         self.RedReqs = Red_Prerequisites
+
+        self.ActivationWindow : set[Tactical_Action_Phases] = set()
 
 
     def __repr__(self):

@@ -1,11 +1,16 @@
 from abc import ABC, abstractmethod
 from Game_Enums import UnitType, Race
+import os
 
-class Race(ABC):
-    @abstractmethod
-    def __init__(self):
+def GetRaceOptions():
+    path = "Assets\\RaceItems"
+    races   = [i.replace("_", " ") for i in os.listdir(path) if os.path.isdir(os.path.join(path, i))]
+    return races
 
-        self.RaceName = None
+class Race():
+    def __init__(self, RaceName : str):
+
+        self.RaceName = RaceName
 
         self.PromissaryNote = None
 
@@ -14,20 +19,28 @@ class Race(ABC):
         self.StartingFleet : list[UnitType] = None
 
         self.Commodities = 0
+
+        self.UniqueTechA = None
+        self.UniqueTechB = None
         pass
 
     def __str__(self):
         return self.RaceName
     
-    @abstractmethod
+    def SetRace(self, RaceName : str):
+        path = f"Assets\\RaceItems\\{RaceName.replace(' ', '_')}"
+        if not os.path.exists(path):
+            raise ValueError(f"Race '{RaceName}' does not exist!")
+        
+        self.RaceName = RaceName
+
+    
     def UniqueTechA(self):
         pass
 
-    @abstractmethod
     def UniqueTechB(self):
         pass
         
-    @abstractmethod
     def GetInitialTechs(self):
         return
     
@@ -40,125 +53,3 @@ class Race(ABC):
     
     def GetRaceName(self):
         return self.RaceName
-
-class Arborec(Race):
-    # https://twilight-imperium.fandom.com/wiki/The_Arborec
-    def __init__(self):
-        self.RaceName = "Arborec"
-        #All starting units for the player in their Home System
-        self.StartingFleet = [UnitType.CARRIER, 
-                              UnitType.CRUISER, 
-                              UnitType.FIGHTER,
-                              UnitType.FIGHTER,
-                              UnitType.INFANTRY,
-                              UnitType.INFANTRY,
-                              UnitType.INFANTRY,
-                              UnitType.INFANTRY,
-                              UnitType.SPACE_DOCK,
-                              UnitType.PDS]
-
-        self.RaceStartingUnits = {
-            UnitType.INFANTRY : (128, 0.5, 8),
-            UnitType.FLAGSHIP : (8, (7, 7), 1, 5, True)
-        }
-
-        self.Commodities = 3
-    
-    def GetInitialTechs(self):
-        return
-    
-    def UniqueTechA(self):
-        #tech is blue, green, yellow, red
-        return  "Letani Warrior 2", UnitType.INFANTRY, (128, 0.5, 7) ,(0, 2, 0, 0)
-    
-    def UniqueTechB(self):
-        return "BioPlasmosis", None, None, (0, 2, 0, 0)
-    
-    def FactionHasAbilitiesInCurrentPhase(self):
-        pass
-    
-    def ActiveFactionAbilities():
-        pass
-
-
-class Letnev(Race):
-    #https://twilight-imperium.fandom.com/wiki/The_Barony_of_Letnev
-    def __init__(self):
-        self.RaceName = "Barony Of Letnev"
-
-        #All starting units for the player in their Home System
-        self.StartingFleet = [UnitType.DREADNOUGHT, 
-                              UnitType.CARRIER, 
-                              UnitType.DESTROYER,
-                              UnitType.FIGHTER,
-                              UnitType.INFANTRY,
-                              UnitType.INFANTRY,
-                              UnitType.INFANTRY,
-                              UnitType.SPACE_DOCK
-                              ]
-
-        self.RaceStartingUnits = {
-            UnitType.FLAGSHIP : (8, (7, 7), 1, 5, True)
-        }
-
-        self.Commodities = 2
-    
-    def GetInitialTechs(self):
-        return
-    
-    def UniqueTechA(self):
-        #tech is blue, green, yellow, red
-        return  "L4 Disruptors", None, None, (0, 0, 1, 0)
-    
-    def UniqueTechB(self):
-        return "Non-Euclidean Shielding", None, None, (0, 0, 0, 2)
-    
-    def FactionHasAbilitiesInCurrentPhase(self):
-        pass
-    
-    def ActiveFactionAbilities():
-        pass
-
-
-class Lizix(Race):
-    # https://twilight-imperium.fandom.com/wiki/The_Arborec
-    def __init__(self):
-        self.RaceName = "Lizix"
-
-
-        #All starting units for the player in their Home System
-        self.StartingFleet = [UnitType.DREADNOUGHT, 
-                              UnitType.CARRIER, 
-                              UnitType.FIGHTER,
-                              UnitType.FIGHTER,
-                              UnitType.FIGHTER,
-                              UnitType.INFANTRY,
-                              UnitType.INFANTRY,
-                              UnitType.INFANTRY,
-                              UnitType.INFANTRY,
-                              UnitType.INFANTRY,
-                              UnitType.SPACE_DOCK,
-                              UnitType.PDS]
-
-        self.RaceStartingUnits = {
-            UnitType.DREADNOUGHT : (5, 5, 4, 2, 1, True),
-            UnitType.FLAGSHIP : (8, (7, 7), 1, 5, True)
-        }
-
-        self.Commodities = 3
-    
-    def GetInitialTechs(self):
-        return
-    
-    def UniqueTechA(self):
-        #tech is blue, green, yellow, red
-        return  "Super-Dreadnought II", UnitType.INFANTRY, (128, 0.5, 7) ,(0, 2, 0, 0)
-    
-    def UniqueTechB(self):
-        return "Inheritance Systems", None, None, (0, 0, 2, 0)
-    
-    def FactionHasAbilitiesInCurrentPhase(self):
-        pass
-    
-    def ActiveFactionAbilities():
-        pass

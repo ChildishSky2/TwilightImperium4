@@ -1,0 +1,26 @@
+TechID, TechName, Technology Type, Red Prerequisites, Yellow Prerequisites, Green Prerequisites, Blue Prerequisites
+001, Sarween Tools, Y, 0, 0, 0, 0
+002, Graviton Laser System, Y, 0, 0, 1, 0
+003, Transit Diodes, Y, 0, 0, 2, 0
+004, Integrated Economy, Y, 0, 0, 3, 0
+005, Antimass Deflectors, B, 0, 0, 0, 0
+006, Gravity Drive, B, 1, 0, 0, 0
+007, Fleet Logistics, B, 2, 0, 0, 0
+008, Light/Wave Deflector, B, 3, 0, 0, 0
+009, Neural Motivator, G, 0, 0, 0, 0
+010, Psychoarchaeology, G, 0, 1, 0, 0
+011, Dacxive Animators, G, 0, 2, 0, 0
+012, Hyper Metabolism, G, 0, 3, 0, 0
+013, Plasma Scoring, R, 0, 0, 0, 0
+014, Magen Defense Grid, R, 0, 0, 0, 1
+015, Self-Assembly Routines, R, 0, 0, 0, 2
+016, Assault Cannon, R, 0, 0, 0, 3
+017, Destroyer II, I, 0, 0, 0, 2
+018, Cruiser II, I, 0, 1, 1, 1
+019, Carrier II, I, 2, 0, 0, 0
+020, Dreadnought II, I, 2, 0, 1, 0
+021, Infantry II, I, 0, 2, 0, 0
+022, Fighter II, I, 1, 1, 0, 0
+023, Space Dock II, I, 0, 0, 2, 0
+024, PDS II, I, 0, 0, 1, 1
+025, War Sun, I, 0, 0, 1, 3

@@ -1,0 +1,196 @@
+{ 
+    "001": { 
+        "TechName": "Sarween Tools", 
+        "Type": "Y", 
+        "Prerequisites": { "G": 0, "R": 0, "B": 0, "Y": 0 }, 
+        "Effect": {
+            "Timing" : "When",
+            "Phase" : "Production",
+            "Automatic" : true,
+            "Exhaustable" : false,
+            "Bonus" : "-1",
+            "BonusTarget" : "Resource"
+        }, 
+        "IsUnitUpgrade": false 
+        }, 
+    "002": { 
+        "TechName": "Graviton Laser System", 
+        "Type": "Y", 
+        "Prerequisites": { "G": 0, "R": 0, "B": 0, "Y": 1 }, 
+        "Effect": {
+            "Timing" : "When",
+            "MajorPhase" : "Movement",
+            "MinorPhase" : "Offense_Space_Cannon",
+            "Automatic" : false,
+            "Exhaustable" : true,
+            "Bonus" : "+1",
+            "BonusTarget" : "Dice"
+        }, 
+        "IsUnitUpgrade": false 
+        }, 
+    "003": { 
+        "TechName": "Transit Diodes", 
+        "Type": "Y", 
+        "Prerequisites": { "G": 0, "R": 0, "B": 0, "Y": 2 }, 
+        "Effect": {
+            "Timing" : "When",
+            "MajorPhase" : "Start_Turn",
+            "Automatic" : false,
+            "Exhaustable" : true,
+            "Bonus" : "Move up to 4",
+            "BonusTarget" : "GF"
+        }, 
+        "IsUnitUpgrade": false 
+        }, 
+    "004": {
+        "TechName": "Integrated Economy", 
+        "Type": "Y", 
+        "Prerequisites": { "G": 0, "R": 0, "B": 0, "Y": 3 }, 
+        "Effect": {
+            "Timing" : "After"
+
+        }, 
+        "IsUnitUpgrade": false 
+    }, 
+    "005": { 
+        "TechName": "Antimass Deflectors", 
+        "Type": "B", 
+        "Prerequisites": { "G": 0, "R": 0, "B": 0, "Y": 0 }, 
+        "Effect": "Your ships gain +1 movement when moving through or into asteroid fields.", 
+        "IsUnitUpgrade": false 
+    }, 
+    "006": { 
+        "TechName": "Gravity Drive", 
+        "Type": "B", 
+        "Prerequisites": { "G": 0, "R": 0, "B": 1, "Y": 0 }, 
+        "Effect": "After activating a system, one ship in that system gains +1 movement for this activation.", 
+        "IsUnitUpgrade": false 
+        }, 
+    "007": { 
+        "TechName": "Fleet Logistics", 
+        "Type": "B", 
+        "Prerequisites": { "G": 0, "R": 0, "B": 2, "Y": 0 }, 
+        "Effect": "After resolving your tactical action, you may perform a second tactical action.", 
+        "IsUnitUpgrade": false 
+        }, 
+    "008": { 
+        "TechName": "Light/Wave Deflector", 
+        "Type": "B", 
+        "Prerequisites": { "G": 0, "R": 0, "B": 3, "Y": 0 }, 
+        "Effect": "Your ships may move through systems containing enemy ships.", 
+        "IsUnitUpgrade": false 
+        }, 
+    "009": { 
+        "TechName": "Neural Motivator", 
+        "Type": "G", 
+        "Prerequisites": { "G": 0, "R": 0, "B": 0, "Y": 0 }, 
+        "Effect": "Gain 1 additional action card during the Status Phase.", 
+        "IsUnitUpgrade": false 
+        }, 
+    "010": { 
+        "TechName": "Dacxive Animators", 
+        "Type": "G", 
+        "Prerequisites": { "G": 1, "R": 0, "B": 0, "Y": 0 }, 
+        "Effect": "After winning a ground combat, you may place 1 infantry from reinforcements on that planet.", 
+        "IsUnitUpgrade": false 
+        }, 
+    "011": { 
+        "TechName": "Hyper Metabolism", 
+        "Type": "G", 
+        "Prerequisites": { "G": 2, "R": 0, "B": 0, "Y": 0 }, 
+        "Effect": "Gain 3 command tokens during the Status Phase instead of 2.", 
+        "IsUnitUpgrade": false 
+        }, 
+    "012": { 
+        "TechName": "X-89 Bacterial Weapon", 
+        "Type": "G", 
+        "Prerequisites": { "G": 3, "R": 0, "B": 0, "Y": 0 }, 
+        "Effect": "After winning a space combat, you may destroy all infantry on one planet in the system.", 
+        "IsUnitUpgrade": false 
+        }, 
+    "013": { 
+        "TechName": "Plasma Scoring", 
+        "Type": "R", 
+        "Prerequisites": { "G": 0, "R": 0, "B": 0, "Y": 0 }, 
+        "Effect": "Add +1 die to your Space Cannon and Bombardment rolls.", 
+        "IsUnitUpgrade": false 
+        }, 
+    "014": { 
+        "TechName": "Magen Defense Grid", 
+        "Type": "R", 
+        "Prerequisites": { "G": 0, "R": 1, "B": 0, "Y": 0 }, 
+        "Effect": "During ground combat on a planet with your PDS, cancel 1 hit.", 
+        "IsUnitUpgrade": false 
+        }, 
+    "015": { 
+        "TechName": "Self-Assembly Routines", 
+        "Type": "R", 
+        "Prerequisites": { "G": 0, "R": 2, "B": 0, "Y": 0 }, 
+        "Effect": "After one of your units is destroyed, you may gain 1 trade good.", 
+        "IsUnitUpgrade": false 
+        }, 
+    "016": { 
+        "TechName": "Assault Cannon", 
+        "Type": "R", 
+        "Prerequisites": { "G": 0, "R": 3, "B": 0, "Y": 0 }, 
+        "Effect": "At the start of space combat, if you have 3+ non-fighter ships, destroy 1 enemy ship.", 
+        "IsUnitUpgrade": false 
+        }, 
+    "017": { 
+        "TechName": "Destroyer II", 
+        "Type": "I", 
+        "Prerequisites": { "G": 0, "R": 2, "B": 0, "Y": 0 }, 
+        "IsUnitUpgrade": true, 
+        "UnitStats": { "Combat": "8 (x2)", "Move": 2, "Capacity": 0, "Abilities": [ "Anti-Fighter Barrage 6 (x3)" ] } 
+        }, 
+    "018": { 
+        "TechName": "Cruiser II", 
+        "Type": "I", 
+        "Prerequisites": { "G": 1, "R": 1, "B": 0, "Y": 1 }, 
+        "IsUnitUpgrade": true, 
+        "UnitStats": { "Combat": "6", "Move": 3, "Capacity": 1, "Abilities": [] } 
+        }, 
+    "019": { 
+        "TechName": "Carrier II", 
+        "Type": "I", 
+        "Prerequisites": { "G": 0, "R": 0, "B": 2, "Y": 0 }, 
+        "IsUnitUpgrade": true, 
+        "UnitStats": { "Combat": "9", "Move": 2, "Capacity": 6, "Abilities": [] } 
+        }, 
+    "020": { 
+        "TechName": "Dreadnought II", 
+        "Type": "I", 
+        "Prerequisites": { "G": 0, "R": 0, "B": 2, "Y": 1 }, 
+        "IsUnitUpgrade": true, 
+        "UnitStats": { "Combat": "5", "Move": 2, "Capacity": 1, "Abilities": [ "Sustain Damage", "Bombardment 4 (x1)" ] } 
+        }, 
+    "021": { 
+        "TechName": "Infantry II", 
+        "Type": "I", 
+        "Prerequisites": { "G": 2, "R": 0, "B": 0, "Y": 0 }, 
+        "IsUnitUpgrade": true, 
+        "UnitStats": { "Combat": "7", "Move": 0, "Capacity": 0, "Abilities": [ "Revive 1 infantry on this planet at the start of the Status Phase" ] } 
+        }, 
+    "022": { 
+        "TechName": "Fighter II", 
+        "Type": "I", 
+        "Prerequisites": { "G": 1, "R": 0, "B": 1, "Y": 0 }, 
+        "IsUnitUpgrade": true, 
+        "UnitStats": { "Combat": "7", "Move": 2, "Capacity": 0, "Abilities": [] } 
+        }, 
+    "023": { 
+        "TechName": "Space Dock II", 
+        "Type": "I", 
+        "Prerequisites": { "G": 0, "R": 0, "B": 0, "Y": 2 }, 
+        "IsUnitUpgrade": true, 
+        "UnitStats": { "Production": "5 + planet resource value", "Abilities": [ "Ships in this system gain +1 movement during tactical actions" ] } 
+        }, 
+    "024": { 
+        "TechName": "PDS II", 
+        "Type": "I", 
+        "Prerequisites": { "G": 0, "R": 1, "B": 0, "Y": 1 }, 
+        "IsUnitUpgrade": true, 
+        "UnitStats": {  
+            }
+        }
+}

@@ -6,17 +6,37 @@ class Phases(Enum):
     Status = "Status"
     Agenda  = "Agenda"
 
+class ActionType(Enum):
+    Component = "Component"
+    Strategic = "Strategic"
+    Tactical = "Tactical"
+
 class ActionPhase(Enum):
-    Activate_Action_Card = 0
-    Activate_Strategy_Card = 1
-    Activate_System = 2
-    Move_Ships = 3
-    Offense_Space_Cannon = 4
-    Space_Combat = 5
-    Commit_GF = 6
-    Defensive_Space_Cannon = 7
-    Ground_Combat = 8
-    Production = 9
+    Start_Turn = 0
+    Activate_System = 1
+    Movement = 2
+    Space_Combat = 3
+    Invasion = 4
+    Production = 5
+
+class MovementPhases(Enum):
+    MoveShips = 0
+    SpaceCannonOffense = 1
+
+class SpaceCombatPhases(Enum):
+    Anti_fighter = 0
+    Announce_retreat = 1
+    CombatRolls = 2
+    AssignHits = 3
+    Retreat = 4
+
+class InvasionPhases(Enum):
+    Bombardment = 0
+    CommitGroundForces = 1
+    SpaceCannonDefence = 2
+    GroundCombat = 3
+    EstablishControl = 4
+
 
 class PlanetTypes(Enum):
     NoType = 0
@@ -63,15 +83,9 @@ class Race(Enum):
     Yin = 15
     Yssaril = 16
 
-class Tactical_Action_Phases(Enum):
-    Start_Turn = 1
-    SystemActivation = 2
-    Movement = 3
-    SpaceCombat = 4
-    Invasion = 5
-    Production = 6
-
-class ActionType(Enum):
-    Component = "Component"
-    Strategic = "Strategic"
-    Tactical = "Tactical"
+class TechnologyTypes(Enum):
+    Propulsion = "B"
+    Cybernetic = "Y"
+    Biological = "G"
+    Warfare = "R"
+    Unit = "I"

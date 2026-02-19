@@ -4,7 +4,6 @@
 
 from ImageCache import ImageCache
 import Race
-from typing import Literal
 import random
 
 class Player:
@@ -50,6 +49,9 @@ class Player:
         self.TradeGoods     = 10
 
         self.SetRace(random.choice(self.GetRaceOptions()))
+
+
+        self.PlayerHand = []
         pass
 
     def __eq__(self, Another_Player):

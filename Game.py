@@ -7,6 +7,7 @@ import Technologies
 import BasicUnits
 from typing import Literal
 from Phases import PhaseManager
+import json
 #https://www.redblobgames.com/grids/hexagons/
 
 from Objectives.Objectives import Objective
@@ -79,13 +80,28 @@ class Game:
 
         self.PhaseManager.SetTurnActionType("Tactical")
 
-    def _LoadTechs(self):
-        self.AvailableTechs = []
-        with open("Technologies.csv", "r") as file:
-            print(file.readline().strip()) # Print header line
-            for line in file:
-                self.AvailableTechs.append(Technologies.Technology(*line.strip().split(",")))
-        print(self.AvailableTechs)
+    def _LoadTechs(self): 
+        self.AvailableTechs = [] 
+        with open("Technologies.json", "r", encoding="utf-8") as file: 
+            tech_data = json.load(file) 
+            for tech_id, tech in tech_data.items(): 
+                prereqs = tech["Prerequisites"] 
+                ty = Technologies.TechnologyTypes
+                ty.value = tech["Type"]
+
+                self.AvailableTechs.append( 
+                    Technologies.Technology( 
+                        TechID=int(tech_id), 
+                        TechName=tech["TechName"], 
+                        TechType=ty, 
+                        Blue_Prerequisites=prereqs["B"], 
+                        Green_Prerequisites=prereqs["G"], 
+                        Yellow_Prerequisites=prereqs['Y'], 
+                        Red_Prerequisites=prereqs["R"], 
+                        Effect=tech.get("Effect", None), 
+                        IsUnitUpgrade=tech.get("IsUnitUpgrade", False), 
+                        UnitStats=tech.get("UnitStats", None) )
+                        )
     
     def GetPlayerColour(self, PlayerID):
         return self.Players[PlayerID].GetPlayerColour()
@@ -107,3 +123,4 @@ class Game:
             self.PublicObjectives[1].append(New_Obj)
 
             return
+    

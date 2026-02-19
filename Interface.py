@@ -19,6 +19,12 @@ class Views(Enum):
     StrategyCards = "Strategy Cards"
     Agendas = "Agendas"
 
+    Combat = "Combat" # for displaying the current space/ground combat
+    PlayerScreen = "PS"# to show more details around 
+    Technology = "Tech"# tech trees screen
+
+
+
 class ScreenResolutions(Enum):
     R_600p = (800, 600)      # SVGA standard
     R_768p = (1024, 768)     # XGA standard
@@ -26,7 +32,7 @@ class ScreenResolutions(Enum):
     R_1080p = (1920, 1080)   # Full HD
     R_1440p = (2560, 1440)   # QHD
     R_4K = (3840, 2160)      # UHD
-    R_UNKNOWN = (0, 0)      # Unknown resolution
+    R_UNKNOWN = (-1, -1)      # Unknown resolution
 
     @property
     def aspect_ratio(self) -> float:
@@ -622,7 +628,7 @@ class UserInterface():
 
             #Hide Ships Button
             pygame.draw.rect(self.Screen, (0, 0, 0), self.HideShipsButton, 2)
-            text_surface = font.render("Hide Ships", True, (0, 0, 0))
+            text_surface = font.render(f"{'Hide' if self.DisplayShips else 'Show'} Ships", True, (0, 0, 0))
             text_rect = text_surface.get_rect(
                 topleft=(
                     self.HideShipsButton.left + 2 * padding,
@@ -633,7 +639,7 @@ class UserInterface():
 
             #Hide GF Button
             pygame.draw.rect(self.Screen, (0, 0, 0), self.HideGFButton, 2)
-            text_surface = font.render("Hide GFs", True, (0, 0, 0))
+            text_surface = font.render(f"{'Hide' if self.DisplayGF else 'Show'} GFs", True, (0, 0, 0))
             text_rect = text_surface.get_rect(
                 topleft=(
                 self.HideGFButton.left + 2 * padding,
@@ -644,7 +650,7 @@ class UserInterface():
 
             #Hide Tokens Button
             pygame.draw.rect(self.Screen, (0, 0, 0), self.HideTokensButton, 2)
-            text_surface = font.render("Hide Tokens", True, (0, 0, 0))
+            text_surface = font.render(f"{'Hide' if self.DisplayTokens else 'Show'} Tokens", True, (0, 0, 0))
             text_rect = text_surface.get_rect(
                 topleft=(
                 self.HideTokensButton.left + 2 * padding,
@@ -764,24 +770,34 @@ class UserInterface():
             token_y = bar_y * 1.4 + int((idx % 3) * 2.5 * (token_size))
             self.Screen.blit(img, (token_x, token_y))
 
-        if self.Objectives_Public:
-            for i, Obj_list in enumerate(self.Game.PublicObjectives):
-                for l, Obj in enumerate(Obj_list):
-                    assert isinstance(Obj.ObjectiveImage, ImageCache), "should be type "
-                    scaled = pygame.transform.smoothscale( Obj.ObjectiveImage.original_image, (int(min_window_dim * 0.19), int(min_window_dim * 0.225)) )
 
-                    x = 0.025 * self.Screen.get_width() + l * (scaled.get_width() * 1.1) 
-                    y = 0.28 * self.Screen.get_height() + 1.1 * i * scaled.get_height() 
+        for i, Obj_list in enumerate(self.Game.PublicObjectives):
+            for l, Obj in enumerate(Obj_list):
+                assert isinstance(Obj.ObjectiveImage, ImageCache), "should be type ImageCache, not " + str(type(Obj.ObjectiveImage))
+                scaled = pygame.transform.smoothscale( Obj.ObjectiveImage.original_image, (int(min_window_dim * 0.19), int(min_window_dim * 0.225)) )
+                x = 0.025 * self.Screen.get_width() + l * (scaled.get_width() * 1.1) 
+                y = 0.28 * self.Screen.get_height() + 1.1 * i * scaled.get_height() 
 
-                    self.Screen.blit(scaled, (x, y)) # Update rect every frame
-                    Obj.ObjectiveImage.SetRect(pygame.Rect(x, y, scaled.get_width(), scaled.get_height()))
+                self.Screen.blit(scaled, (x, y)) # Update rect every frame
+                Obj.ObjectiveImage.SetRect(pygame.Rect(x, y, scaled.get_width(), scaled.get_height()))
 
-                    if self.selectedObjective is not None and divmod(self.selectedObjective, 5) == (l, i):
-                        pygame.draw.rect(self.Screen, (255, 0, 0), Obj.ObjectiveImage.rect, width=3)
-                    pass
-            pass
-        else:
-            pass
+                if self.selectedObjective is not None and divmod(self.selectedObjective, 5) == (l, i):
+                    pygame.draw.rect(self.Screen, (255, 0, 0), Obj.ObjectiveImage.rect, width=3)
+
+                    r = Obj.ObjectiveImage.rect
+                    r.y += .75 * r.height
+                    r.height *= 0.25
+                    overlay = pygame.Surface((r.width, r.height), pygame.SRCALPHA) 
+                    overlay.fill((100, 100, 100, 100)) # RGBA with alpha 
+                    self.Screen.blit(overlay, r.topleft)
+
+                    font = pygame.font.SysFont(None, 36)
+                    txt_rect = font.render("Score", True, (0, 0, 0))
+                    self.Screen.blit(txt_rect, txt_rect.get_rect(center=r.center))
+                pass
+        pass
+        
+        
 
         pass
 
@@ -827,8 +843,6 @@ class UserInterface():
                 i += 1
 
         pass
-
-
 
     def _handle_click_Map(self, mouse_pos):
         """Detect which hexagon was clicked."""
@@ -936,7 +950,6 @@ class UserInterface():
             for idx2, obj in enumerate(obj_List):
                 if obj.ObjectiveImage.rect.collidepoint(mouse_pos):
                     self.selectedObjective = idx2 * 5 + idx
-                    print(f"Selected Objective: {obj.ObjectiveName}")
                     break
             if self.selectedObjective is not None:
                 break
@@ -966,6 +979,10 @@ class UserInterface():
         
             return inside
         
+        def ChangeViewResetVars():
+            self.selectedTile = None
+            self.selectedObjective = None
+
         top_menu = [
             [
                 (0.1 * self.Screen.get_width(), 0),   # Top left
@@ -1040,6 +1057,10 @@ class UserInterface():
         
         for item, view in zip(top_menu, Views):#changing screen - top menu
             if point_in_trapezoid(mouse_pos, item):
+                if view == self.view:
+                    return
+                
+                ChangeViewResetVars()
                 self.view = view
                 return
 
@@ -1080,7 +1101,6 @@ class UserInterface():
 
 
         self.ResolutionOptionsVisible = False
-        self.Objectives_Public = True
 
         # create the initial display according to Windowed flag
         self._apply_window_mode()

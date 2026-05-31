@@ -15,7 +15,7 @@ class Player:
 
         self.Race : Race = None
 
-        self.VP : int = random.randint(0, 10) # initial victory points - always starts at 0
+        self.VP : int = 0 # initial victory points always start at 0
         self.StrategyCard = None
         self.Priority = None
 
@@ -50,8 +50,8 @@ class Player:
 
         self.SetRace(random.choice(self.GetRaceOptions()))
 
-
         self.PlayerHand = []
+        self.ScoredObjectives = []
         pass
 
     def __eq__(self, Another_Player):

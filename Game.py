@@ -1,6 +1,3 @@
-#need to represent game board
-#hexagonal pieces
-
 import Map
 import Player
 import Technologies

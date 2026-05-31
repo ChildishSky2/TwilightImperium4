@@ -1,14 +1,11 @@
 TODO
 
 Wifi connections to other players
-Pause Button -> should show a menu for size adjustment + leaving server
-
 
 Button Sizes should scale with window size
 
 Build GUI
  - add starting screen to app
- - add agenda screen
 
 fix the problem with text size not adjusting
 
@@ -18,4 +15,6 @@ Buttons for the active system - activate system, selecting ships to me moved the
 
 phases of a turn in action phase - taking planets
 
-rebuild Race.py - should be adaptable to any race, not be extended
+rebuild Race.py - should be adaptable to any race, not be extended on an individual basis
+
+rebuild Map data structure - there should be a more effective way to hold data than simple list

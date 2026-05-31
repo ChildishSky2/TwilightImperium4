@@ -26,8 +26,11 @@ class Planet:
         return f"Planet {self.PlanetName} of type {self.PlanetType} with resources {self.Resources} and Influence {self.Influence}\n"
 
 class Tile:
-    #Represents a single System
-    def __init__(self):
+    #Represents a single System with location on hexagonal grid
+    def __init__(self, system_id: int = -1, hex_coords: tuple[int, int, int] = None):
+        self.SystemID : int = system_id
+        self.HexCoords : tuple[int, int, int] = hex_coords or (0, 0, 0)
+        
         self.Planets : list[Planet] = []
 
         self.ContainsAlpha : bool = False
@@ -36,7 +39,7 @@ class Tile:
 
         self.Anomaly = Anomalies.NoAnomaly
 
-        self.TileNumber : int = -1
+        self.TileNumber : int = system_id
 
         self.TileImage : ImageCache = None
 
@@ -164,83 +167,46 @@ class Tile:
         return self.ShipsInSpace
 
 class System:
-    #For the map to be used in a game
-    def __init__(self, max_rings=3):
-        self.max_rings : int = max_rings
-        self.Map : list[Tile | int] = ['18']
-        self._generate_map()
-        self._generate_hex_coordinate_mapping()
-    
-    def _generate_map(self):
-        """Generate hexagonal map with rings from center outward"""
-        self.Map.extend([None for _ in range(1, 3* self.max_rings * (self.max_rings + 1) + 1)])
-    
-    def _generate_hex_coordinate_mapping(self):
-        """Generate mapping from array index to hex cube coordinates (x, y, z)"""
-        self.index_to_coords = {}
-        self.coords_to_index = {}
+    #Represents the hexagonal game map with all systems and their positions
+    def __init__(self, max_rings: int = 3):
+        self.max_rings: int = max_rings
+        self.tiles: list[Tile] = []  # List of tiles in order (index = position on map)
+        self.tile_to_coords: dict[Tile, tuple[int, int, int]] = {}  # Maps tile objects to hex coordinates
+        self.coords_to_tile: dict[tuple[int, int, int], Tile] = {}  # Maps hex coordinates to tile
         
-        # Center tile at origin
-        index = 0
-        self.index_to_coords[index] = (0, 0, 0)
-        self.coords_to_index[(0, 0, 0)] = index
-        index += 1
-        
-        # Generate coordinates for each ring
-        for ring in range(1, self.max_rings + 1):
-            # Start at the "top" of the ring
-            x, y, z = 0, -ring, ring
-            
-            # Six directions in cube coordinates
-            directions = [
-                (1, 0, -1),   # SE
-                (0, 1, -1),   # S
-                (-1, 1, 0),   # SW
-                (-1, 0, 1),   # NW
-                (0, -1, 1),   # N
-                (1, -1, 0)    # NE
-            ]
-            
-            for direction in directions:
-                dx, dy, dz = direction
-                for _ in range(ring):
-                    self.index_to_coords[index] = (x, y, z)
-                    self.coords_to_index[(x, y, z)] = index
-                    index += 1
-                    x += dx
-                    y += dy
-                    z += dz
+    def add_tile(self, tile: Tile, hex_coords: tuple[int, int, int]):
+        """Add a tile at the specified hex coordinates"""
+        tile.HexCoords = hex_coords
+        self.tiles.append(tile)
+        self.tile_to_coords[tile] = hex_coords
+        self.coords_to_tile[hex_coords] = tile
     
-    def get_hex_coords(self, tile_index):
-        """Get hex cube coordinates for a given tile index"""
-        if tile_index not in self.index_to_coords:
-            raise ValueError(f"Tile index {tile_index} is out of bounds")
-        return self.index_to_coords[tile_index]
+    def get_tile_coords(self, tile: Tile) -> tuple[int, int, int]:
+        """Get hex coordinates for a tile"""
+        if tile not in self.tile_to_coords:
+            raise KeyError("Tile not found on map")
+        return self.tile_to_coords[tile]
     
-    def get_tile_index(self, hex_coords):
-        """Get tile index for given hex cube coordinates"""
-        if hex_coords not in self.coords_to_index:
-            raise ValueError(f"Hex coordinates {hex_coords} are out of bounds")
-        return self.coords_to_index[hex_coords]
-    
-    def get_tile_distance(self, tile1_index, tile2_index):
+    def calculate_distance(self, tile1: Tile, tile2: Tile) -> int:
         """
-        Calculate the distance between two tiles using their array indices.
-        Returns the minimum number of steps to move from tile1 to tile2.
+        Calculate the shortest distance between two tiles on the hexagonal grid.
+        Uses cube coordinates where distance = max(|x1-x2|, |y1-y2|, |z1-z2|)
         """
-        coords1 = self.get_hex_coords(tile1_index)
-        coords2 = self.get_hex_coords(tile2_index)
+        if tile1 is tile2:
+            return 0
         
-        # Distance in cube coordinates is max of absolute differences
+        coords1 = self.get_tile_coords(tile1)
+        coords2 = self.get_tile_coords(tile2)
+        
         x1, y1, z1 = coords1
         x2, y2, z2 = coords2
         
         distance = max(abs(x1 - x2), abs(y1 - y2), abs(z1 - z2))
         return distance
     
-    def get_adjacent_tiles(self, tile_index):
-        """Get all adjacent tile indices (distance 1)"""
-        coords = self.get_hex_coords(tile_index)
+    def get_adjacent_tiles(self, tile: Tile) -> list[Tile]:
+        """Get all adjacent tiles (distance 1)"""
+        coords = self.get_tile_coords(tile)
         x, y, z = coords
         
         # Six directions in cube coordinates
@@ -256,31 +222,62 @@ class System:
         neighbors = []
         for dx, dy, dz in directions:
             neighbor_coords = (x + dx, y + dy, z + dz)
-            if neighbor_coords in self.coords_to_index:
-                neighbors.append(self.coords_to_index[neighbor_coords])
+            if neighbor_coords in self.coords_to_tile:
+                neighbors.append(self.coords_to_tile[neighbor_coords])
         
         return neighbors
     
-    def get_tiles_at_distance(self, tile_index, distance):
+    def get_tiles_at_distance(self, tile: Tile, distance: int) -> list[Tile]:
         """Get all tiles at exactly the specified distance"""
+        if distance < 0:
+            return []
         if distance == 0:
-            return [tile_index]
+            return [tile]
         
         tiles_at_distance = []
-        for index in self.index_to_coords:
-            if self.get_tile_distance(tile_index, index) == distance:
-                tiles_at_distance.append(index)
+        for other_tile in self.tiles:
+            if self.calculate_distance(tile, other_tile) == distance:
+                tiles_at_distance.append(other_tile)
         
         return tiles_at_distance
     
-    def get_tiles_in_movement_range(self, tile_index, movement_points):
-        """Get all tiles within the specified movement range (inclusive)"""
+    def get_tiles_in_range(self, tile: Tile, distance: int) -> list[Tile]:
+        """Get all tiles within the specified distance (inclusive)"""
         tiles_in_range = []
-        for index in self.index_to_coords:
-            if self.get_tile_distance(tile_index, index) <= movement_points:
-                tiles_in_range.append(index)
+        for other_tile in self.tiles:
+            if self.calculate_distance(tile, other_tile) <= distance:
+                tiles_in_range.append(other_tile)
         
         return tiles_in_range
+    
+    def find_path(self, start_tile: Tile, end_tile: Tile) -> list[Tile]:
+        """
+        Find the shortest path between two tiles using breadth-first search.
+        Returns a list of tiles from start to end (inclusive).
+        """
+        if start_tile is end_tile:
+            return [start_tile]
+        
+        if start_tile not in self.tile_to_coords or end_tile not in self.tile_to_coords:
+            raise KeyError("One or both tiles not found on map")
+        
+        from collections import deque
+        
+        queue = deque([(start_tile, [start_tile])])
+        visited = {start_tile}
+        
+        while queue:
+            current_tile, path = queue.popleft()
+            
+            for neighbor_tile in self.get_adjacent_tiles(current_tile):
+                if neighbor_tile is end_tile:
+                    return path + [neighbor_tile]
+                
+                if neighbor_tile not in visited:
+                    visited.add(neighbor_tile)
+                    queue.append((neighbor_tile, path + [neighbor_tile]))
+        
+        raise ValueError("No path found between the two tiles")
     
     def LoadMap(self, mode : Literal["Preset", "Auto", "Milty"] = "Auto", MapString : str = None):
 
@@ -289,39 +286,63 @@ class System:
 
         if mode == "Preset":
             System_Numbers = MapString.split(" ")
-            for idx, system in enumerate(self.Map):
+            for idx, system in enumerate(self.tiles):
                 if system != None:
                     continue
-                self.Map[idx] = int(System_Numbers[idx])
+                # This mode would need updating for new structure
+                raise NotImplementedError("Preset mode needs updating for new System class")
         
         if mode == "Auto":
             with open("Systems.json", 'r') as file:
                 data = json.load(file)
 
             available_systems = set(data.keys())
-            available_systems.remove('18')
+            available_systems.discard('18')
             
-            for idx, system in enumerate(self.Map):
-                if system != None:#if already present
-                    continue
-
-                if not available_systems:
-                    raise LookupError("No more unique systems available")
+            # Generate a basic circular layout
+            systems_to_place = ['18'] + list(available_systems)
+            
+            # Place center system at origin
+            center_tile = Tile()
+            center_tile.LoadSystemFromData(data, '18')
+            self.add_tile(center_tile, (0, 0, 0))
+            
+            # Place remaining systems in a spiral pattern
+            index = 1
+            for ring in range(1, self.max_rings + 1):
+                x, y, z = 0, -ring, ring
+                directions = [
+                    (1, 0, -1),   # SE
+                    (0, 1, -1),   # S
+                    (-1, 1, 0),   # SW
+                    (-1, 0, 1),   # NW
+                    (0, -1, 1),   # N
+                    (1, -1, 0)    # NE
+                ]
                 
-                SelectedSystem = random.choice(list(available_systems))
-                available_systems.remove(SelectedSystem)
-            
-                self.Map[idx] = SelectedSystem
-            
-            #load all tiles selected including mecatol rex and mallice
-            for idx, system in enumerate(self.Map):
-                tile = Tile()
-                tile.LoadSystemFromData(data, system)
-                self.Map[idx] = tile
+                for dx, dy, dz in directions:
+                    for _ in range(ring):
+                        if index >= len(systems_to_place):
+                            break
+                        
+                        system_id = systems_to_place[index]
+                        tile = Tile()
+                        tile.LoadSystemFromData(data, system_id)
+                        self.add_tile(tile, (x, y, z))
+                        
+                        x += dx
+                        y += dy
+                        z += dz
+                        index += 1
+                    
+                    if index >= len(systems_to_place):
+                        break
+                
+                if index >= len(systems_to_place):
+                    break
         
         if mode == "Milty":
             raise ValueError("Mode under development")
-        pass
 
     def SetHomeSystems(self, RaceList : list[str]):
         print(f"Setting home systems for races: {', '.join(RaceList)}")
@@ -330,16 +351,11 @@ class System:
             case 4:
                 positions = [4, 8, 13, 17]
             case 5:
-                positions = [0, 3, 7, 11, 15]
+                positions = [3, 7, 11, 15, 18]
             case 6:
-                positions = [0, 3, 6, 9, 12, 15]
+                positions = [3, 6, 9, 12, 15, 18]
             case _:
                 raise ValueError("Unable to have game with given number of players")
     
-
         for pos, Race in zip(positions, RaceList):
-            T = Tile()
-            T.TileImage = ImageCache(f"Assets\\RaceItems\\{Race.replace(' ', '_')}\\HomeSystem.png", 50)
-            self.Map[3 * (self.max_rings) * (self.max_rings-1) + 1 + pos] = T
-            pass
-        pass
+            self.tiles[len(self.tiles) - pos].TileImage = ImageCache(f"Assets\\RaceItems\\{Race.replace(' ', '_')}\\HomeSystem.png", 50)

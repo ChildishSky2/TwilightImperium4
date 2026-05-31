@@ -20,7 +20,7 @@ class Views(Enum):
     Agendas = "Agendas"
 
     Combat = "Combat" # for displaying the current space/ground combat
-    PlayerScreen = "PS"# to show more details around 
+    PlayerScreen = "PS"# to show more details about an individual player, accessed by clicking on their player area
     Technology = "Tech"# tech trees screen
 
 
@@ -362,7 +362,7 @@ class UserInterface():
         x_adjust = 0.85 * self.radius
         y_adjust = 0.9 * self.radius
 
-        for index, tile in enumerate(self.Game.Map.Map):
+        for index, tile in enumerate(self.Game.Map.tiles):
             x, y = self.MapHexPositions[index]
 
             blits.append((tile.TileImage.get_scaled_tile(self.radius), self.MapHexPositions[index]))
@@ -598,7 +598,7 @@ class UserInterface():
             return
 
         def ShowActiveSystem():
-            img_source = self.Game.Map.Map[self.Game.ActiveSystem].TileImage if self.Game.ActiveSystem != None else self.Game.Map.Map[self.Game.SelectedSystem].TileImage
+            img_source = self.Game.Map.tiles[self.Game.ActiveSystem].TileImage if self.Game.ActiveSystem != None else self.Game.Map.tiles[self.Game.SelectedSystem].TileImage
             img = img_source.get_scaled_tile(self.radius * 3)
             self.Screen.blit(img, (self.width * 0.02, self.height * 0.2))
 
@@ -608,7 +608,7 @@ class UserInterface():
 
         ShowActiveSystem()
 
-        if self.Game.SelectedSystem != None and self.Game.Map.Map[self.Game.SelectedSystem].CheckPlayerHasActivatedSystem(self.Game.Players[self.Game.Turn].PlayerID):
+        if self.Game.SelectedSystem != None and self.Game.Map.tiles[self.Game.SelectedSystem].CheckPlayerHasActivatedSystem(self.Game.Players[self.Game.Turn].PlayerID):
             ActivateSystemButtom((100, 100, 100))
         else:
             ActivateSystemButtom((255, 255, 255))
@@ -779,19 +779,31 @@ class UserInterface():
                 y = 0.28 * self.Screen.get_height() + 1.1 * i * scaled.get_height() 
 
                 self.Screen.blit(scaled, (x, y)) # Update rect every frame
+
                 Obj.ObjectiveImage.SetRect(pygame.Rect(x, y, scaled.get_width(), scaled.get_height()))
+
+                if Obj.ScoredBy:
+                    token_size = max(10, int(min(scaled.get_width(), scaled.get_height()) * 0.12))
+                    token_x = x + 4
+                    token_y = y * 1.1 + 4
+                    for idx, scorer_id in enumerate(Obj.ScoredBy):
+                        if 0 <= scorer_id < len(self.Game.Players):
+                            owner_token = self.Game.Players[scorer_id].GetOwnerTokenImg(token_size)
+                            col_x = token_x + (idx // 3) * 1.1 * (token_size)
+                            col_y = token_y + (idx % 3) * 1.1 * (token_size)
+                            self.Screen.blit(owner_token, (col_x, col_y))
 
                 if self.selectedObjective is not None and divmod(self.selectedObjective, 5) == (l, i):
                     pygame.draw.rect(self.Screen, (255, 0, 0), Obj.ObjectiveImage.rect, width=3)
 
-                    r = Obj.ObjectiveImage.rect
-                    r.y += .75 * r.height
-                    r.height *= 0.25
-                    overlay = pygame.Surface((r.width, r.height), pygame.SRCALPHA) 
-                    overlay.fill((100, 100, 100, 100)) # RGBA with alpha 
+                    r = Obj.ObjectiveImage.rect.copy()
+                    r.y += int(r.height * 0.75)
+                    r.height = int(r.height * 0.25)
+                    overlay = pygame.Surface((r.width, r.height), pygame.SRCALPHA)
+                    overlay.fill((100, 100, 100, 160))
                     self.Screen.blit(overlay, r.topleft)
 
-                    font = pygame.font.SysFont(None, 36)
+                    font = pygame.font.SysFont(None, 32)
                     txt_rect = font.render("Score", True, (0, 0, 0))
                     self.Screen.blit(txt_rect, txt_rect.get_rect(center=r.center))
                 pass
@@ -871,7 +883,7 @@ class UserInterface():
                     return
                 
                 #Player has previously activated the system
-                if self.Game.Map.Map[self.Game.SelectedSystem].CheckPlayerHasActivatedSystem(self.Game.Players[self.Game.Turn].PlayerID):
+                if self.Game.Map.tiles[self.Game.SelectedSystem].CheckPlayerHasActivatedSystem(self.Game.Players[self.Game.Turn].PlayerID):
                     return
                 
                 self.Game.ActivateSystem()
@@ -944,17 +956,35 @@ class UserInterface():
         """Clicks which occur only on the Objectives Page."""
         if self.Game.PhaseManager.MainPhase != "Status":
             return
-        
-        # If we're on the Objectives page, handle clicks on objectives
+
+        clicked_objective = None
+        clicked_row = None
+        clicked_col = None
+
         for idx, obj_List in enumerate(self.Game.PublicObjectives):
             for idx2, obj in enumerate(obj_List):
                 if obj.ObjectiveImage.rect.collidepoint(mouse_pos):
-                    self.selectedObjective = idx2 * 5 + idx
+                    clicked_objective = idx2 * 5 + idx
+                    clicked_row = idx2
+                    clicked_col = idx
                     break
-            if self.selectedObjective is not None:
+            if clicked_objective is not None:
                 break
-        else:
+
+        if clicked_objective is None:
             self.selectedObjective = None
+            return
+
+        if self.selectedObjective == clicked_objective:
+            objective = self.Game.PublicObjectives[clicked_col][clicked_row]
+            scored = objective.AttemptToScore(self.Game.Players[self.Game.Turn], self.Game.Map)
+            if scored:
+                print(f"Scored objective {objective.ObjectiveName} for {objective.ObjectiveValue} VP")
+            else:
+                print(f"Unable to score objective {objective.ObjectiveName}")
+            return
+
+        self.selectedObjective = clicked_objective
 
     def _Global_Handle_click(self, mouse_pos):
         """The main function for handling on screen clicks"""
@@ -1106,7 +1136,7 @@ class UserInterface():
         self._apply_window_mode()
         self._calc_resize()
 
-        assert len(self.Game.Map.Map) == len(self.MapHexPositions), "Failed to initialise"
+        assert len(self.Game.Map.tiles) == len(self.MapHexPositions), "Failed to initialise"
 
     def _apply_window_mode(self):
         """Apply the current window/fullscreen mode to the pygame display.

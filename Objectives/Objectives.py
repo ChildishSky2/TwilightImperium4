@@ -61,79 +61,188 @@ class Objective:
             self.ObjectiveReqs = json.load(f)[selected_file]
         pass
 
+    def AwardScore(self, PlayerTrying : Player.Player) -> bool:
+        PlayerTrying.VP += self.ObjectiveValue
+        self.ScoredBy.append(PlayerTrying.PlayerID)
+        if hasattr(PlayerTrying, 'ScoredObjectives'):
+            PlayerTrying.ScoredObjectives.append(self)
+        return True
+
+    def _count_player_technologies(self, PlayerTrying : Player.Player) -> int:
+        return (
+            len(PlayerTrying.PropulsionTechs)
+            + len(PlayerTrying.BiologicalTechs)
+            + len(PlayerTrying.CyberneticTechs)
+            + len(PlayerTrying.WarfareTechs)
+            + len(PlayerTrying.UnitTechnologies)
+        )
+
+    def _count_player_technology_colors(self, PlayerTrying : Player.Player) -> dict:
+        return {
+            'B': len(PlayerTrying.PropulsionTechs),
+            'G': len(PlayerTrying.BiologicalTechs),
+            'Y': len(PlayerTrying.CyberneticTechs),
+            'R': len(PlayerTrying.WarfareTechs),
+        }
+
+    def _count_player_ship_systems(self, PlayerTrying : Player.Player, GameMap : Map.System) -> int:
+        count = 0
+        for tile in GameMap.tiles:
+            if tile.ShipOwner == PlayerTrying.PlayerID and len(tile.ShipsInSpace) > 0:
+                count += 1
+        return count
+
+    def _player_has_unit_type(self, PlayerTrying : Player.Player, GameMap : Map.System, wanted_types: list[str]) -> bool:
+        for tile in GameMap.tiles:
+            if tile.ShipOwner != PlayerTrying.PlayerID:
+                continue
+            for unit in tile.ShipsInSpace:
+                if unit.value in wanted_types or unit.name in wanted_types:
+                    return True
+        return False
+
+    def _evalHaveObjective(self, reqs, PlayerTrying : Player.Player, GameMap : Map.System) -> bool:
+        resource = reqs.get('Resource')
+        quantity = reqs.get('Quantity')
+        conditions = reqs.get('Conditions', []) or []
+
+        if isinstance(quantity, str) and quantity.isdigit():
+            quantity = int(quantity)
+
+        if resource in ('Ships', 'Units'):
+            count = self._count_player_ship_systems(PlayerTrying, GameMap)
+            if 'Do not contain Planets' in conditions:
+                count = 0
+                for tile in GameMap.tiles:
+                    if tile.ShipOwner == PlayerTrying.PlayerID and len(tile.ShipsInSpace) > 0 and len(tile.Planets) == 0:
+                        count += 1
+            if count >= quantity:
+                return self.AwardScore(PlayerTrying)
+            return False
+
+        if resource == 'War Sun||FlagShip':
+            if self._player_has_unit_type(PlayerTrying, GameMap, ['WarSun', 'Flagship']):
+                return self.AwardScore(PlayerTrying)
+            return False
+
+        if resource == 'Structures':
+            count = 0
+            for tile in GameMap.tiles:
+                for planet in tile.Planets:
+                    if getattr(planet, 'OwnedBy', None) == PlayerTrying.PlayerID and getattr(planet, 'HasStructure', False):
+                        if 'IsNonHome' in reqs.get('Filters', {}) and getattr(planet, 'IsNonHome', False) != reqs['Filters']['IsNonHome']:
+                            continue
+                        count += 1
+            if count >= quantity:
+                return self.AwardScore(PlayerTrying)
+            return False
+
+        print(f"Unsupported HAVE objective resource '{resource}' for scoring.")
+        return False
+
+    def _evalOwnObjective(self, reqs, PlayerTrying : Player.Player) -> bool:
+        resource = reqs.get('Resource')
+        quantity = reqs.get('Quantity', 0)
+        conditions = reqs.get('Conditions', []) or []
+
+        if resource == 'technologies':
+            if 'in each of 2 colors' in ' '.join(conditions).lower():
+                color_counts = self._count_player_technology_colors(PlayerTrying)
+                if sum(1 for value in color_counts.values() if value >= quantity) >= 2:
+                    return self.AwardScore(PlayerTrying)
+                return False
+
+            if 'unit technologies' in ' '.join(conditions).lower():
+                if len(PlayerTrying.UnitTechnologies) >= quantity:
+                    return self.AwardScore(PlayerTrying)
+                return False
+
+            if self._count_player_technologies(PlayerTrying) >= quantity:
+                return self.AwardScore(PlayerTrying)
+            return False
+
+        print(f"Unsupported OWN objective resource '{resource}' for scoring.")
+        return False
+
+    def _evalSpendObjective(self, reqs, PlayerTrying : Player.Player) -> bool:
+        if (reqs.get('Resources', 0) <= PlayerTrying.AvailableResources and 
+            reqs.get('Influence', 0) <= PlayerTrying.AvailableInfluence and 
+            reqs.get('TradeGoods', 0) <= PlayerTrying.TradeGoods and 
+            reqs.get('Tokens', 0) <= PlayerTrying.GetScoringTokens()):
+
+            PlayerTrying.AvailableResources -= reqs.get('Resources', 0)
+            PlayerTrying.AvailableInfluence -= reqs.get('Influence', 0)
+            PlayerTrying.TradeGoods         -= reqs.get('TradeGoods', 0)
+            return self.AwardScore(PlayerTrying)
+
+        return False
+
     def AttemptToScore(self, PlayerTrying : Player.Player, GameMap : Map.System) -> bool:
         if PlayerTrying.PlayerID in self.ScoredBy:
             return False
-        match self.ObjectiveReqs['type']:
-            case "Have":
-                print("Have")
-            case "Control":
-                return self.__evalControlObjective(self, self.ObjectiveReqs['Filters'], PlayerTrying, GameMap)
-            case "Own":
-                
-                pass
-            case "Spend":
-                if (self.ObjectiveReqs['Resources']  <= PlayerTrying.AvailableResources and 
-                    self.ObjectiveReqs['Influence']  <= PlayerTrying.AvailableInfluence and 
-                    self.ObjectiveReqs['TradeGoods'] <= PlayerTrying.TradeGoods and 
-                    self.ObjectiveReqs['Tokens']    <= PlayerTrying.GetScoringTokens()):
 
-                    PlayerTrying.AvailableResources -= self.ObjectiveReqs['Resources']
-                    PlayerTrying.AvailableInfluence -= self.ObjectiveReqs['Influence']
-                    PlayerTrying.TradeGoods         -= self.ObjectiveReqs['TradeGoods']
+        if self.ObjectiveReqs is None:
+            return False
 
-                    self.ScoredBy.append(PlayerTrying.PlayerID)
-                    return True
-        
-        return False
-    
+        objective_type = self.ObjectiveReqs.get('type')
+        match objective_type:
+            case 'Have':
+                return self._evalHaveObjective(self.ObjectiveReqs, PlayerTrying, GameMap)
+            case 'Control':
+                return self.__evalControlObjective(self.ObjectiveReqs.get('Filters', {}), PlayerTrying, GameMap)
+            case 'Own':
+                return self._evalOwnObjective(self.ObjectiveReqs, PlayerTrying)
+            case 'Spend':
+                return self._evalSpendObjective(self.ObjectiveReqs, PlayerTrying)
+            case _:
+                print(f"Unsupported objective type '{objective_type}'")
+                return False
+
     def __evalControlObjective(self, filters, PlayerTrying, GameMap):
         # Count planets that match the filters
-        print(filters)
-        if filters.get('PlanetTrait') == "Any":
-            R_Planet, G_Planet, B_Planet = 0, 0, 0
-            for tile in GameMap.Tiles:
+        planet_count = 0
+        if filters.get('PlanetTrait') in ('Any', 'Same'):
+            trait_counts = {'Red': 0, 'Green': 0, 'Blue': 0}
+            for tile in GameMap.tiles:
                 for planet in tile.Planets:
-                    if planet.OwnedBy == PlayerTrying.PlayerID:
-                        if self.__matchesFilters(planet, filters):
-                            match planet.PlanetTrait:
-                                case "Red":
-                                    R_Planet += 1
-                                case "Green":
-                                    G_Planet += 1
-                                case "Blue":
-                                    B_Planet += 1
-            if any(count >= self.ObjectiveReqs['Planets'] for count in (R_Planet, G_Planet, B_Planet)):
-                self.ScoredBy.append(PlayerTrying.PlayerID)
-                return True
-            pass
-        count = 0
-        for tile in GameMap.Tiles:
-            for planet in tile.Planets:
-                if planet.OwnedBy == PlayerTrying.PlayerID:
-                    if self.__matchesFilters(planet, filters):
-                        count += 1
+                    if planet.OwnedBy != PlayerTrying.PlayerID:
+                        continue
+                    if not self.__matchesFilters(planet, filters):
+                        continue
+                    if isinstance(planet.PlanetTrait, str) and planet.PlanetTrait in trait_counts:
+                        trait_counts[planet.PlanetTrait] += 1
+            print(f"Trait counts for player {PlayerTrying.PlayerID}: {trait_counts}")
+            if any(count >= self.ObjectiveReqs.get('Planets', 0) for count in trait_counts.values()):
+                return self.AwardScore(PlayerTrying)
+            return False
 
-        if count >= self.ObjectiveReqs['Planets']:
-            self.ScoredBy.append(PlayerTrying.PlayerID)
-            return True
+        for tile in GameMap.tiles:
+            for planet in tile.Planets:
+                if planet.OwnedBy == PlayerTrying.PlayerID and self.__matchesFilters(planet, filters):
+                    planet_count += 1
+
+        if planet_count >= self.ObjectiveReqs.get('Planets', 0):
+            return self.AwardScore(PlayerTrying)
         return False
 
     def __matchesFilters(self, planet, filters):
         for key, value in filters.items():
-            if key == "PlanetTrait":
-                if not hasattr(planet, 'PlanetTrait') or planet.PlanetTrait != value:
+            if key == 'PlanetTrait':
+
+                if value in ('Any', 'Same'):
+                    continue
+                if not hasattr(planet, 'PlanetTrait') or planet.PlanetType != value:
                     return False
-            elif key == "HasAttachment":
+            elif key == 'HasAttachment':
                 if not hasattr(planet, 'HasAttachment') or planet.HasAttachment != value:
                     return False
-            elif key == "IsNonHome":
+            elif key == 'IsNonHome':
                 if not hasattr(planet, 'IsNonHome') or planet.IsNonHome != value:
                     return False
-            elif key == "HasStructure":
+            elif key == 'HasStructure':
                 if not hasattr(planet, 'HasStructure') or planet.HasStructure != value:
                     return False
-            elif key == "HasTechSpecialty":
+            elif key == 'HasTechSpecialty':
                 if not hasattr(planet, 'HasTechSpecialty') or planet.HasTechSpecialty != value:
                     return False
         return True

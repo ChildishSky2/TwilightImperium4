@@ -808,10 +808,199 @@ class UserInterface():
                     self.Screen.blit(txt_rect, txt_rect.get_rect(center=r.center))
                 pass
         pass
-        
-        
 
-        pass
+        # Draw pending scoring modal if present
+        if self.pending_score_objective is not None:
+            col, row = self.pending_score_objective
+            try:
+                objective = self.Game.PublicObjectives[col][row]
+            except Exception:
+                objective = None
+
+            if objective is not None and objective.ObjectiveReqs is not None:
+                # Modal dimensions
+                modal_w = int(self.width * 0.35)
+                modal_h = int(self.height * 0.25)
+                modal_x = (self.width - modal_w) // 2
+                modal_y = (self.height - modal_h) // 2
+
+                modal = pygame.Rect(modal_x, modal_y, modal_w, modal_h)
+                pygame.draw.rect(self.Screen, (240, 240, 240), modal)
+                pygame.draw.rect(self.Screen, (0, 0, 0), modal, 2)
+
+                font = pygame.font.SysFont(None, 24)
+                title = font.render(f"Score: {objective.ObjectiveName} ({objective.ObjectiveValue}VP)", True, (0, 0, 0))
+                self.Screen.blit(title, (modal_x + 12, modal_y + 8))
+
+                # Show required amounts for Resources and Influence at top
+                reqs = objective.ObjectiveReqs
+                req_res = reqs.get('Resources', 0)
+                req_inf = reqs.get('Influence', 0)
+                req_tg = reqs.get('TradeGoods', 0)
+                req_tok = reqs.get('Tokens', 0)
+
+                info_line = font.render(f"Resources: {req_res}   Influence: {req_inf}   TradeGoods: {req_tg}   Tokens: {req_tok}", True, (0,0,0))
+                self.Screen.blit(info_line, (modal_x + 12, modal_y + 36))
+
+                # Build selectors
+                btn_x = modal_x + 12
+                btn_y = modal_y + 68
+                btn_w = 40
+                btn_h = 28
+
+                self.pending_score_buttons.clear()
+
+
+
+                # If resource requirement exists, provide selectors for resources and trade goods to cover it
+                if req_res > 0:
+                    # Resource selector row
+                    label = font.render("Resources to use:", True, (0,0,0))
+                    self.Screen.blit(label, (btn_x, btn_y))
+
+                    # Decrement button
+                    dec_rect = pygame.Rect(btn_x + 160, btn_y, btn_w, btn_h)
+                    pygame.draw.rect(self.Screen, (200,200,200), dec_rect)
+                    pygame.draw.rect(self.Screen, (0,0,0), dec_rect, 1)
+                    self.Screen.blit(font.render("-", True, (0,0,0)), font.render("-", True, (0,0,0)).get_rect(center=dec_rect.center))
+                    self.pending_score_buttons['dec_res'] = dec_rect
+
+                    # Value display
+                    val_rect = pygame.Rect(btn_x + 160 + btn_w + 8, btn_y, 60, btn_h)
+                    pygame.draw.rect(self.Screen, (255,255,255), val_rect)
+                    pygame.draw.rect(self.Screen, (0,0,0), val_rect, 1)
+                    val_text = font.render(str(self.pending_score_options.get('res', 0)), True, (0,0,0))
+                    self.Screen.blit(val_text, val_text.get_rect(center=val_rect.center))
+
+                    # Increment button
+                    inc_rect = pygame.Rect(val_rect.right + 8, btn_y, btn_w, btn_h)
+                    pygame.draw.rect(self.Screen, (200,200,200), inc_rect)
+                    pygame.draw.rect(self.Screen, (0,0,0), inc_rect, 1)
+                    self.Screen.blit(font.render("+", True, (0,0,0)), font.render("+", True, (0,0,0)).get_rect(center=inc_rect.center))
+                    self.pending_score_buttons['inc_res'] = inc_rect
+
+                    btn_y += btn_h + 8
+
+                if req_inf > 0:
+                    # Influence selector row
+                    label = font.render("Influence to use:", True, (0,0,0))
+                    self.Screen.blit(label, (btn_x, btn_y))
+
+                    # Decrement button
+                    dec_rect = pygame.Rect(btn_x + 160, btn_y, btn_w, btn_h)
+                    pygame.draw.rect(self.Screen, (200,200,200), dec_rect)
+                    pygame.draw.rect(self.Screen, (0,0,0), dec_rect, 1)
+                    self.Screen.blit(font.render("-", True, (0,0,0)), font.render("-", True, (0,0,0)).get_rect(center=dec_rect.center))
+                    self.pending_score_buttons['dec_inf'] = dec_rect
+
+                    # Value display
+                    val_rect = pygame.Rect(btn_x + 160 + btn_w + 8, btn_y, 60, btn_h)
+                    pygame.draw.rect(self.Screen, (255,255,255), val_rect)
+                    pygame.draw.rect(self.Screen, (0,0,0), val_rect, 1)
+                    val_text = font.render(str(self.pending_score_options.get('inf', 0)), True, (0,0,0))
+                    self.Screen.blit(val_text, val_text.get_rect(center=val_rect.center))
+
+                    # Increment button
+                    inc_rect = pygame.Rect(val_rect.right + 8, btn_y, btn_w, btn_h)
+                    pygame.draw.rect(self.Screen, (200,200,200), inc_rect)
+                    pygame.draw.rect(self.Screen, (0,0,0), inc_rect, 1)
+                    self.Screen.blit(font.render("+", True, (0,0,0)), font.render("+", True, (0,0,0)).get_rect(center=inc_rect.center))
+                    self.pending_score_buttons['inc_inf'] = inc_rect
+
+                    btn_y += btn_h + 8
+                
+                if req_inf + req_res > 0 or req_tg > 0:
+
+                    # Trade-for-resources selector row
+                    label2 = font.render("Trade goods to use:", True, (0,0,0))
+                    self.Screen.blit(label2, (btn_x, btn_y))
+
+                    dec2 = pygame.Rect(btn_x + 260, btn_y, btn_w, btn_h)
+                    pygame.draw.rect(self.Screen, (200,200,200), dec2)
+                    pygame.draw.rect(self.Screen, (0,0,0), dec2, 1)
+                    self.Screen.blit(font.render("-", True, (0,0,0)), font.render("-", True, (0,0,0)).get_rect(center=dec2.center))
+                    self.pending_score_buttons['dec_trade'] = dec2
+
+                    val2 = pygame.Rect(dec2.right + 8, btn_y, 60, btn_h)
+                    pygame.draw.rect(self.Screen, (255,255,255), val2)
+                    pygame.draw.rect(self.Screen, (0,0,0), val2, 1)
+                    val_text2 = font.render(str(self.pending_score_options.get('tgs', 0)), True, (0,0,0))
+                    self.Screen.blit(val_text2, val_text2.get_rect(center=val2.center))
+
+                    inc2 = pygame.Rect(val2.right + 8, btn_y, btn_w, btn_h)
+                    pygame.draw.rect(self.Screen, (200,200,200), inc2)
+                    pygame.draw.rect(self.Screen, (0,0,0), inc2, 1)
+                    self.Screen.blit(font.render("+", True, (0,0,0)), font.render("+", True, (0,0,0)).get_rect(center=inc2.center))
+                    self.pending_score_buttons['inc_trade'] = inc2
+
+                    btn_y += btn_h + 8
+
+                # Token source choice if tokens required
+                if req_tok > 0:
+                    # --- TACTICS TOKENS ---
+                    label_tac = font.render("Tactics tokens to use:", True, (0,0,0))
+                    self.Screen.blit(label_tac, (btn_x, btn_y))
+
+                    dec_tac = pygame.Rect(btn_x + 260, btn_y, btn_w, btn_h)
+                    pygame.draw.rect(self.Screen, (200,200,200), dec_tac)
+                    pygame.draw.rect(self.Screen, (0,0,0), dec_tac, 1)
+                    self.Screen.blit(font.render("-", True, (0,0,0)),
+                                     font.render("-", True, (0,0,0)).get_rect(center=dec_tac.center))
+                    self.pending_score_buttons['dec_tac'] = dec_tac
+
+                    val_tac = pygame.Rect(dec_tac.right + 8, btn_y, 60, btn_h)
+                    pygame.draw.rect(self.Screen, (255,255,255), val_tac)
+                    pygame.draw.rect(self.Screen, (0,0,0), val_tac, 1)
+                    tac_val_text = font.render(str(self.pending_score_options.get('TacticsTokens', 0)), True, (0,0,0))
+                    self.Screen.blit(tac_val_text, tac_val_text.get_rect(center=val_tac.center))
+
+                    inc_tac = pygame.Rect(val_tac.right + 8, btn_y, btn_w, btn_h)
+                    pygame.draw.rect(self.Screen, (200,200,200), inc_tac)
+                    pygame.draw.rect(self.Screen, (0,0,0), inc_tac, 1)
+                    self.Screen.blit(font.render("+", True, (0,0,0)),
+                                     font.render("+", True, (0,0,0)).get_rect(center=inc_tac.center))
+                    self.pending_score_buttons['inc_tac'] = inc_tac
+
+                    btn_y += btn_h + 8
+
+
+                    # --- STRATEGY TOKENS ---
+                    label_strat = font.render("Strategy tokens to use:", True, (0,0,0))
+                    self.Screen.blit(label_strat, (btn_x, btn_y))
+
+                    dec_strat = pygame.Rect(btn_x + 260, btn_y, btn_w, btn_h)
+                    pygame.draw.rect(self.Screen, (200,200,200), dec_strat)
+                    pygame.draw.rect(self.Screen, (0,0,0), dec_strat, 1)
+                    self.Screen.blit(font.render("-", True, (0,0,0)),
+                                     font.render("-", True, (0,0,0)).get_rect(center=dec_strat.center))
+                    self.pending_score_buttons['dec_strat'] = dec_strat
+
+                    val_strat = pygame.Rect(dec_strat.right + 8, btn_y, 60, btn_h)
+                    pygame.draw.rect(self.Screen, (255,255,255), val_strat)
+                    pygame.draw.rect(self.Screen, (0,0,0), val_strat, 1)
+                    strat_val_text = font.render(str(self.pending_score_options.get('StrategyTokens', 0)), True, (0,0,0))
+                    self.Screen.blit(strat_val_text, strat_val_text.get_rect(center=val_strat.center))
+
+                    inc_strat = pygame.Rect(val_strat.right + 8, btn_y, btn_w, btn_h)
+                    pygame.draw.rect(self.Screen, (200,200,200), inc_strat)
+                    pygame.draw.rect(self.Screen, (0,0,0), inc_strat, 1)
+                    self.Screen.blit(font.render("+", True, (0,0,0)),
+                                     font.render("+", True, (0,0,0)).get_rect(center=inc_strat.center))
+                    self.pending_score_buttons['inc_strat'] = inc_strat
+
+                    btn_y += btn_h + 8
+
+                # Confirm / Cancel
+                confirm_rect = pygame.Rect(modal_x + modal_w - 180 - 12, modal_y + modal_h - btn_h - 12, 80, btn_h)
+                cancel_rect = pygame.Rect(modal_x + modal_w - 90, modal_y + modal_h - btn_h - 12, 80, btn_h)
+                pygame.draw.rect(self.Screen, (120, 200, 120), confirm_rect)
+                pygame.draw.rect(self.Screen, (200, 120, 120), cancel_rect)
+                pygame.draw.rect(self.Screen, (0,0,0), confirm_rect, 1)
+                pygame.draw.rect(self.Screen, (0,0,0), cancel_rect, 1)
+                self.Screen.blit(font.render("Confirm", True, (0,0,0)), font.render("Confirm", True, (0,0,0)).get_rect(center=confirm_rect.center))
+                self.Screen.blit(font.render("Cancel", True, (0,0,0)), font.render("Cancel", True, (0,0,0)).get_rect(center=cancel_rect.center))
+                self.pending_score_buttons['confirm'] = confirm_rect
+                self.pending_score_buttons['cancel'] = cancel_rect
 
     def _draw_Menu(self):
         overlay = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
@@ -956,7 +1145,99 @@ class UserInterface():
         """Clicks which occur only on the Objectives Page."""
         if self.Game.PhaseManager.MainPhase != "Status":
             return
+        
 
+        # If a scoring modal is open, process its buttons first
+        if self.pending_score_objective is not None and self.pending_score_buttons:
+            col, row = self.pending_score_objective
+            try:
+                objective = None
+                objective = self.Game.PublicObjectives[col][row]
+            except Exception:
+                pass
+
+            player = self.Game.Players[self.Game.Turn]
+            reqs = objective.ObjectiveReqs if objective else {}
+
+            for name, rect in list(self.pending_score_buttons.items()):
+                if rect.collidepoint(mouse_pos):
+                    # Increment/decrement resources chosen for the Resources requirement
+                    if name == 'inc_res':
+                        max_res = min(reqs.get('Resources', 0), player.AvailableResources)
+                        if self.pending_score_options['res'] < max_res:
+                            self.pending_score_options['res'] += 1
+                            # ensure trade_for_res adjusts if sum would exceed requirement
+                            remaining = reqs.get('Resources', 0) - self.pending_score_options['res']
+                            self.pending_score_options['tgs'] = min(self.pending_score_options['tgs'], max(0, remaining))
+                        return
+                    elif name == 'dec_res':
+                        if self.pending_score_options['res'] > 0:
+                            self.pending_score_options['res'] -= 1
+                        return
+                    if name == 'inc_inf':
+                        max_inf = min(reqs.get('Influence', 0), player.AvailableInfluence)
+                        if self.pending_score_options['inf'] < max_inf:
+                            self.pending_score_options['inf'] += 1
+                            # ensure trade_for_res adjusts if sum would exceed requirement
+                            remaining = reqs.get('Influence', 0) - self.pending_score_options['inf']
+                            self.pending_score_options['tgs'] = min(self.pending_score_options['tgs'], max(0, remaining))
+                        return
+                    elif name == 'dec_inf':
+                        if self.pending_score_options['inf'] > 0:
+                            self.pending_score_options['inf'] -= 1
+                        return
+                    elif name == 'inc_trade':
+                        rem_res = max(0, reqs.get('Resources', 0) - self.pending_score_options['res'])
+                        rem_inf = max(0, reqs.get('Influence', 0) - self.pending_score_options['inf'])
+                        rem_tgs = max(0, reqs.get('TradeGoods', 0) - self.pending_score_options['tgs'])
+
+                        remaining_req = rem_res + rem_inf + rem_tgs
+
+                        if remaining_req > 0 and self.pending_score_options['tgs'] < player.TradeGoods:
+                            self.pending_score_options['tgs'] += 1
+                        return
+                    elif name == 'dec_trade':
+                        if self.pending_score_options['tgs'] > 0:
+                            self.pending_score_options['tgs'] -= 1
+                        return
+                    elif name == 'inc_tac':
+                        if self.pending_score_options['TacticsTokens'] < player.TacticsTokens:
+                            self.pending_score_options['TacticsTokens'] += 1
+                        return
+                    elif name == 'dec_tac':
+                        if self.pending_score_options['TacticsTokens'] > 0:
+                            self.pending_score_options['TacticsTokens'] -= 1
+                        return
+                    elif name == 'inc_strat':
+                        if self.pending_score_options['StrategyTokens'] < player.StrategyTokens:
+                            self.pending_score_options['StrategyTokens'] += 1
+                        return
+                    elif name == 'dec_strat':
+                        if self.pending_score_options['StrategyTokens'] > 0:
+                            self.pending_score_options['StrategyTokens'] -= 1
+                        return
+                    elif name == 'cancel':
+                        self.pending_score_objective = None
+                        self.pending_score_buttons.clear()
+                        return
+                    elif name == 'confirm':
+                        col, row = self.pending_score_objective
+                        objective = self.Game.PublicObjectives[col][row]
+                        opts = self.pending_score_options
+                        scored = objective.AttemptToScore(self.Game.Players[self.Game.Turn], self.Game.Map, resources_used=opts.get('res', 0), trade_for_resources=opts.get('tgs', 0), influence_used=opts.get('influence', 0), Tactics_token=opts.get('TacticsTokens', 0), Strategy_token=opts.get('StrategyTokens', 0))
+                        if scored:
+                            print(f"Scored objective {objective.ObjectiveName} for {objective.ObjectiveValue} VP")
+                        else:
+                            print(f"Unable to score objective {objective.ObjectiveName}")
+                        # clear modal regardless to avoid repeated clicks
+                        self.pending_score_objective = None
+                        self.pending_score_buttons.clear()
+                        return
+
+            # Keep the modal open unless Cancel or Confirm is pressed.
+            return
+
+        # Regular objective selection / scoring
         clicked_objective = None
         clicked_row = None
         clicked_col = None
@@ -975,8 +1256,25 @@ class UserInterface():
             self.selectedObjective = None
             return
 
+        objective = self.Game.PublicObjectives[clicked_col][clicked_row]
+
+        # If same objective clicked again, open modal for spend/token choices when needed
         if self.selectedObjective == clicked_objective:
-            objective = self.Game.PublicObjectives[clicked_col][clicked_row]
+            reqs = objective.ObjectiveReqs or {}
+            if reqs.get('type') == 'Spend':
+                # open modal to choose spend options
+                self.pending_score_objective = (clicked_col, clicked_row)
+                # reset options
+                self.pending_score_options = {
+                    'res': 0,
+                    'inf': 0,
+                    'tgs': 0,
+                    'TacticsTokens': 0,
+                    'StrategyTokens': 0
+                    }
+                return
+
+            # No modal needed; attempt scoring directly
             scored = objective.AttemptToScore(self.Game.Players[self.Game.Turn], self.Game.Map)
             if scored:
                 print(f"Scored objective {objective.ObjectiveName} for {objective.ObjectiveValue} VP")
@@ -1128,6 +1426,17 @@ class UserInterface():
         self.DisplayGF = True
         self.DisplayShips = True
         self.DisplayTokens = True
+
+        # Pending scoring UI state
+        self.pending_score_objective = None  # tuple(col, row) when set
+        self.pending_score_options = {
+            'res': 0,
+            'inf': 0,
+            'tgs': 0,
+            'TacticsTokens': 0,
+            'StrategyTokens': 0
+        }
+        self.pending_score_buttons = {}
 
 
         self.ResolutionOptionsVisible = False

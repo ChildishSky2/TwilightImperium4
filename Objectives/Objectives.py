@@ -164,20 +164,62 @@ class Objective:
         print(f"Unsupported OWN objective resource '{resource}' for scoring.")
         return False
 
-    def _evalSpendObjective(self, reqs, PlayerTrying : Player.Player) -> bool:
-        if (reqs.get('Resources', 0) <= PlayerTrying.AvailableResources and 
-            reqs.get('Influence', 0) <= PlayerTrying.AvailableInfluence and 
-            reqs.get('TradeGoods', 0) <= PlayerTrying.TradeGoods and 
-            reqs.get('Tokens', 0) <= PlayerTrying.GetScoringTokens()):
+    def _evalSpendObjective(self, reqs, PlayerTrying : Player.Player, GameMap: Map.System, resources_used: int | None = None, trade_for_resources: int | None = None, influence_used: int | None = None, Tactics_token : int | None = None, Strategy_token : int | None = None) -> bool:
+        # Determine required amounts
+        req_resources = reqs.get('Resources', 0)
+        req_influence = reqs.get('Influence', 0)
+        req_trade = reqs.get('TradeGoods', 0)
+        req_tokens = reqs.get('Tokens', 0)
 
-            PlayerTrying.AvailableResources -= reqs.get('Resources', 0)
-            PlayerTrying.AvailableInfluence -= reqs.get('Influence', 0)
-            PlayerTrying.TradeGoods         -= reqs.get('TradeGoods', 0)
-            return self.AwardScore(PlayerTrying)
+        # Defaults
+        if resources_used is None:
+            resources_used = 0
+        if trade_for_resources is None:
+            trade_for_resources = 0
 
-        return False
+        # Validate basic availability
+        if req_influence > PlayerTrying.AvailableInfluence:
+            return False
 
-    def AttemptToScore(self, PlayerTrying : Player.Player, GameMap : Map.System) -> bool:
+        # Resources/trade_for_resources must sum to required resources
+        if req_resources > 0:
+            if resources_used < 0 or trade_for_resources < 0:
+                return False
+            if resources_used + trade_for_resources != req_resources:
+                return False
+            if resources_used > PlayerTrying.AvailableResources:
+                return False
+            # trade goods used for resources must be available (note: will also need to cover req_trade)
+            if trade_for_resources > PlayerTrying.TradeGoods:
+                return False
+
+        # Check direct trade goods requirement (after reserving trade_for_resources)
+        if req_trade > 0 and PlayerTrying.TradeGoods - trade_for_resources < req_trade:
+            return False
+
+        # All checks passed; perform deductions
+        PlayerTrying.AvailableInfluence -= req_influence
+
+        # Deduct resources and trade used for resources
+        if req_resources > 0:
+            PlayerTrying.AvailableResources -= resources_used
+            PlayerTrying.TradeGoods -= trade_for_resources
+
+        # Deduct direct trade goods cost
+        if req_trade > 0:
+            PlayerTrying.TradeGoods -= req_trade
+
+        # Tokens deduction
+        if req_tokens > 0:
+            if PlayerTrying.TacticsTokens + PlayerTrying.StrategyTokens < req_tokens:
+                return False  # Not enough tokens overall
+            
+            PlayerTrying.TacticsTokens -= Tactics_token
+            PlayerTrying.StrategyTokens -= Strategy_token
+
+        return self.AwardScore(PlayerTrying)
+
+    def AttemptToScore(self, PlayerTrying : Player.Player, GameMap : Map.System, resources_used: int | None = None,  trade_for_resources: int | None = None, influence_used: int | None = None, Tactics_token : int | None = None, Strategy_token : int | None = None) -> bool:
         if PlayerTrying.PlayerID in self.ScoredBy:
             return False
 
@@ -193,12 +235,13 @@ class Objective:
             case 'Own':
                 return self._evalOwnObjective(self.ObjectiveReqs, PlayerTrying)
             case 'Spend':
-                return self._evalSpendObjective(self.ObjectiveReqs, PlayerTrying)
+                return self._evalSpendObjective(self.ObjectiveReqs, PlayerTrying, GameMap, resources_used, trade_for_resources, influence_used, Tactics_token, Strategy_token)
             case _:
                 print(f"Unsupported objective type '{objective_type}'")
                 return False
 
     def __evalControlObjective(self, filters, PlayerTrying, GameMap):
+        return False
         # Count planets that match the filters
         planet_count = 0
         if filters.get('PlanetTrait') in ('Any', 'Same'):

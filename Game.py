@@ -33,6 +33,9 @@ class Game:
         self.PublicObjectives = [[], []]
         self.AddNewPublicObjective()
         self.AddNewPublicObjective()
+        self.AddNewPublicObjective()
+        self.AddNewPublicObjective()
+        self.AddNewPublicObjective()
 
         self.AvailableGeneralTechs = self._LoadTechs()
 

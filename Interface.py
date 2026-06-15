@@ -782,16 +782,21 @@ class UserInterface():
 
                 Obj.ObjectiveImage.SetRect(pygame.Rect(x, y, scaled.get_width(), scaled.get_height()))
 
-                if Obj.ScoredBy:
-                    token_size = max(10, int(min(scaled.get_width(), scaled.get_height()) * 0.12))
-                    token_x = x + 4
-                    token_y = y * 1.1 + 4
-                    for idx, scorer_id in enumerate(Obj.ScoredBy):
-                        if 0 <= scorer_id < len(self.Game.Players):
-                            owner_token = self.Game.Players[scorer_id].GetOwnerTokenImg(token_size)
-                            col_x = token_x + (idx // 3) * 1.1 * (token_size)
-                            col_y = token_y + (idx % 3) * 1.1 * (token_size)
-                            self.Screen.blit(owner_token, (col_x, col_y))
+                token_size = max(10, int(min(scaled.get_width(), scaled.get_height()) * 0.12))
+                token_x = x + 4
+                token_y = y * 1.1 + 4
+
+                idx = 0
+                for player in self.Game.Players:
+                    if Obj in player.ScoredObjectives:
+                        owner_token = player.GetOwnerTokenImg(token_size)
+                
+                        col_x = token_x + (idx // 3) * 1.1 * token_size
+                        col_y = token_y + (idx % 3) * 1.1 * token_size
+                
+                        self.Screen.blit(owner_token, (col_x, col_y))
+                        idx += 1
+
 
                 if self.selectedObjective is not None and divmod(self.selectedObjective, 5) == (l, i):
                     pygame.draw.rect(self.Screen, (255, 0, 0), Obj.ObjectiveImage.rect, width=3)
@@ -1158,6 +1163,7 @@ class UserInterface():
 
             player = self.Game.Players[self.Game.Turn]
             reqs = objective.ObjectiveReqs if objective else {}
+            #print(reqs)
 
             for name, rect in list(self.pending_score_buttons.items()):
                 if rect.collidepoint(mouse_pos):
@@ -1166,42 +1172,55 @@ class UserInterface():
                         max_res = min(reqs.get('Resources', 0), player.AvailableResources)
                         if self.pending_score_options['res'] < max_res:
                             self.pending_score_options['res'] += 1
-                            # ensure trade_for_res adjusts if sum would exceed requirement
-                            remaining = reqs.get('Resources', 0) - self.pending_score_options['res']
-                            self.pending_score_options['tgs'] = min(self.pending_score_options['tgs'], max(0, remaining))
+
+                            # Recalculate remaining cost TG can cover
+                            rem_res = max(0, reqs.get('Resources', 0) - self.pending_score_options['res'])
+                            rem_inf = max(0, reqs.get('Influence', 0) - self.pending_score_options['inf'])
+                            rem_tgs = max(0, reqs.get('TradeGoods', 0) - self.pending_score_options['tgs'])
+
+
+                            # Reduce TG if overpaying
+                            self.pending_score_options['tgs'] = min(self.pending_score_options['tgs'], rem_res + rem_inf + rem_tgs)
                         return
                     elif name == 'dec_res':
                         if self.pending_score_options['res'] > 0:
                             self.pending_score_options['res'] -= 1
                         return
-                    if name == 'inc_inf':
+                    elif name == 'inc_inf':
                         max_inf = min(reqs.get('Influence', 0), player.AvailableInfluence)
                         if self.pending_score_options['inf'] < max_inf:
                             self.pending_score_options['inf'] += 1
-                            # ensure trade_for_res adjusts if sum would exceed requirement
-                            remaining = reqs.get('Influence', 0) - self.pending_score_options['inf']
-                            self.pending_score_options['tgs'] = min(self.pending_score_options['tgs'], max(0, remaining))
+
+                            # Recalculate remaining cost TG can cover
+                            rem_res = max(0, reqs.get('Resources', 0) - self.pending_score_options['res'])
+                            rem_inf = max(0, reqs.get('Influence', 0) - self.pending_score_options['inf'])
+                            rem_tgs = max(0, reqs.get('TradeGoods', 0) - self.pending_score_options['tgs'])
+
+                            self.pending_score_options['tgs'] = min(self.pending_score_options['tgs'], rem_res + rem_inf + rem_tgs)
+
                         return
                     elif name == 'dec_inf':
                         if self.pending_score_options['inf'] > 0:
                             self.pending_score_options['inf'] -= 1
                         return
                     elif name == 'inc_trade':
+                        # Remaining unmet requirements
                         rem_res = max(0, reqs.get('Resources', 0) - self.pending_score_options['res'])
                         rem_inf = max(0, reqs.get('Influence', 0) - self.pending_score_options['inf'])
-                        rem_tgs = max(0, reqs.get('TradeGoods', 0) - self.pending_score_options['tgs'])
+                        rem_tgs = reqs.get('TradeGoods', 0) - self.pending_score_options['tgs']
 
-                        remaining_req = rem_res + rem_inf + rem_tgs
-
-                        if remaining_req > 0 and self.pending_score_options['tgs'] < player.TradeGoods:
+                        #print(remaining_cost > 0, remaining_tg_available > 0, f"Remaining requirement: {rem_res, rem_inf, rem_tgs} (total: {remaining_cost}), Max trade goods available: {remaining_tg_available}, Current trade goods used: {self.pending_score_options['tgs']}")
+                        if rem_res + rem_inf + rem_tgs > 0 and player.TradeGoods - self.pending_score_options['tgs'] > 0:
                             self.pending_score_options['tgs'] += 1
+
                         return
+                    
                     elif name == 'dec_trade':
                         if self.pending_score_options['tgs'] > 0:
                             self.pending_score_options['tgs'] -= 1
                         return
                     elif name == 'inc_tac':
-                        if self.pending_score_options['TacticsTokens'] < player.TacticsTokens:
+                        if self.pending_score_options['TacticsTokens'] < player.TacticsTokens and self.pending_score_options['TacticsTokens'] + self.pending_score_options['StrategyTokens'] < reqs.get('Tokens', 0):
                             self.pending_score_options['TacticsTokens'] += 1
                         return
                     elif name == 'dec_tac':
@@ -1209,7 +1228,7 @@ class UserInterface():
                             self.pending_score_options['TacticsTokens'] -= 1
                         return
                     elif name == 'inc_strat':
-                        if self.pending_score_options['StrategyTokens'] < player.StrategyTokens:
+                        if self.pending_score_options['StrategyTokens'] < player.StrategyTokens and self.pending_score_options['TacticsTokens'] + self.pending_score_options['StrategyTokens'] < reqs.get('Tokens', 0):
                             self.pending_score_options['StrategyTokens'] += 1
                         return
                     elif name == 'dec_strat':
@@ -1227,11 +1246,11 @@ class UserInterface():
                         scored = objective.AttemptToScore(self.Game.Players[self.Game.Turn], self.Game.Map, resources_used=opts.get('res', 0), trade_for_resources=opts.get('tgs', 0), influence_used=opts.get('influence', 0), Tactics_token=opts.get('TacticsTokens', 0), Strategy_token=opts.get('StrategyTokens', 0))
                         if scored:
                             print(f"Scored objective {objective.ObjectiveName} for {objective.ObjectiveValue} VP")
+                            # clear modal regardless to avoid repeated clicks
+                            self.pending_score_objective = None
+                            self.pending_score_buttons.clear()
                         else:
                             print(f"Unable to score objective {objective.ObjectiveName}")
-                        # clear modal regardless to avoid repeated clicks
-                        self.pending_score_objective = None
-                        self.pending_score_buttons.clear()
                         return
 
             # Keep the modal open unless Cancel or Confirm is pressed.
@@ -1401,7 +1420,6 @@ class UserInterface():
 
             case Views.Objectives:
                 self._handle_click_Objectives(mouse_pos)
-
 
 
     def __init__(self, Game : Game.Game):

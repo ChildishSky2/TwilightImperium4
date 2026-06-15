@@ -51,7 +51,7 @@ class Player:
         self.SetRace(random.choice(self.GetRaceOptions()))
 
         self.PlayerHand = []
-        self.ScoredObjectives = []
+        self.ScoredObjectives = set()
         pass
 
     def __eq__(self, Another_Player):
@@ -69,8 +69,6 @@ class Player:
         self.Token = ImageCache(f"Assets\\RaceItems\\{RaceName.replace(' ', '_')}\\TacticsToken.png", 10)
         self.OwnerToken = ImageCache(f"Assets\\RaceItems\\{RaceName.replace(' ', '_')}\\OwnerToken.png", 10)
 
-        
-
     def GetTokenImg(self, radius):
         return self.Token.get_scaled_tile(radius)
     
@@ -87,3 +85,7 @@ class Player:
 
     def GetScoringTokens(self):
         return self.TacticsTokens + self.StrategyTokens
+    
+    def GetTechs(self):
+        print([self.PropulsionTechs + self.BiologicalTechs + self.CyberneticTechs + self.WarfareTechs + self.UnitTechnologies])
+        return self.PropulsionTechs + self.BiologicalTechs + self.CyberneticTechs + self.WarfareTechs + self.UnitTechnologies

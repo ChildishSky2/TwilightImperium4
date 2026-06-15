@@ -37,7 +37,7 @@ class Game:
         self.AddNewPublicObjective()
         self.AddNewPublicObjective()
 
-        self.AvailableGeneralTechs = self._LoadTechs()
+        self.AvailableGeneralTechs = Technologies.Technology.LoadGeneralTechs()
 
         self.UnitManager = BasicUnits.UnitManager()
         #print(self.PublicObjectives)
@@ -75,33 +75,10 @@ class Game:
 
     def ActivateSystem(self):
         self.ActiveSystem = self.SelectedSystem
-        self.Map.Map[self.ActiveSystem].ActivateSystem(self.Turn)
+        self.Map.tiles[self.ActiveSystem].ActivateSystem(self.Turn)
         self.Players[self.Turn].TacticsTokens -= 1
 
         self.PhaseManager.SetTurnActionType("Tactical")
-
-    def _LoadTechs(self): 
-        self.AvailableTechs = [] 
-        with open("Technologies.json", "r", encoding="utf-8") as file: 
-            tech_data = json.load(file) 
-            for tech_id, tech in tech_data.items(): 
-                prereqs = tech["Prerequisites"] 
-                ty = Technologies.TechnologyTypes
-                ty.value = tech["Type"]
-
-                self.AvailableTechs.append( 
-                    Technologies.Technology( 
-                        TechID=int(tech_id), 
-                        TechName=tech["TechName"], 
-                        TechType=ty, 
-                        Blue_Prerequisites=prereqs["B"], 
-                        Green_Prerequisites=prereqs["G"], 
-                        Yellow_Prerequisites=prereqs['Y'], 
-                        Red_Prerequisites=prereqs["R"], 
-                        Effect=tech.get("Effect", None), 
-                        IsUnitUpgrade=tech.get("IsUnitUpgrade", False), 
-                        UnitStats=tech.get("UnitStats", None) )
-                        )
     
     def GetPlayerColour(self, PlayerID):
         return self.Players[PlayerID].GetPlayerColour()

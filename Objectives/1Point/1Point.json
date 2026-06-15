@@ -46,8 +46,9 @@
     "Engineer_A_Marvel" : {
         "text" : "Have your flagship or a war sun on the game board",
         "type" : "Have",
-        "Resource" : "War Sun||FlagShip",
-        "Conditions" : []
+        "Resource" : "Ships",
+        "Quantity" : 1,
+        "Conditions" : ["Flagship", "War Sun"]
     },
     "Erect_A_Monument" : {
         "text" : "Spend 8 resources",
@@ -78,9 +79,10 @@
     },
     "Improve_Infrastructure" : {
         "text" : "Have structures on 3 planets outside of your home system",
-        "type" : "Control",
-        "Planets" : 3,
-        "Filters": { "HasStructure": true, "IsNonHome": true }
+        "type" : "Have",
+        "RequiredType" : "Structures",
+        "Quantity" : 3,
+        "Conditions" : ["in non-home systems"]
     },
     "Intimidate_Council" : {
         "text" : "Have 1 or more ships in 2 systems that are adjacent to Mecatol Rex",
@@ -128,7 +130,8 @@
         "text" : "Have 5 or more non-fighter ships in 1 system",
         "type" : "Have",
         "Resource" : "Ships",
-        "Quantity" : 5
+        "Quantity" : 5,
+        "Conditions" : ["in 1 system"]
     },
     "Sway_The_Council" : {
         "text" : "Spend 8 Influence",

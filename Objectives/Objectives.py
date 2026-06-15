@@ -22,8 +22,6 @@ class Objective:
         self.ObjectiveImage : ImageCache = ObjectiveImage
         self.ObjectiveName : str = ObjectiveName
         self.ObjectiveReqs = None
-
-        self.ScoredBy = []
         pass
     pass
 
@@ -63,9 +61,8 @@ class Objective:
 
     def AwardScore(self, PlayerTrying : Player.Player) -> bool:
         PlayerTrying.VP += self.ObjectiveValue
-        self.ScoredBy.append(PlayerTrying.PlayerID)
         if hasattr(PlayerTrying, 'ScoredObjectives'):
-            PlayerTrying.ScoredObjectives.append(self)
+            PlayerTrying.ScoredObjectives.add(self)
         return True
 
     def _count_player_technologies(self, PlayerTrying : Player.Player) -> int:
@@ -83,6 +80,7 @@ class Objective:
             'G': len(PlayerTrying.BiologicalTechs),
             'Y': len(PlayerTrying.CyberneticTechs),
             'R': len(PlayerTrying.WarfareTechs),
+            'U': len(PlayerTrying.UnitTechnologies)
         }
 
     def _count_player_ship_systems(self, PlayerTrying : Player.Player, GameMap : Map.System) -> int:
@@ -105,9 +103,43 @@ class Objective:
         resource = reqs.get('Resource')
         quantity = reqs.get('Quantity')
         conditions = reqs.get('Conditions', []) or []
+        
+        if reqs.get('RequiredType') == 'Structures':
 
-        if isinstance(quantity, str) and quantity.isdigit():
-            quantity = int(quantity)
+            total_structures = 0
+            planets_with_structures = 0
+
+            for tile in GameMap.tiles:
+                # Apply optional condition: "in non-home systems"
+                if 'in non-home systems' in conditions and getattr(planet, 'IsNonHome', None) is not None:
+                        continue
+                
+                for planet in tile.Planets:
+                
+                    # Must be owned by the player
+                    if getattr(planet, 'OwnedBy', None) != PlayerTrying.PlayerID:
+                        continue
+                    
+                    # Count structures on this planet
+                    structures_here = 1 if getattr(planet, 'SpaceDock', False) else 0
+                    structures_here += getattr(planet, 'PDS', 0)
+
+                    if structures_here > 0:
+                        planets_with_structures += 1
+                        total_structures += structures_here
+
+            print(f"Player {PlayerTrying.PlayerID} has {planets_with_structures} planets with structures and a total of {total_structures} structures.")
+            # Case 1: Objective requires structures on N planets
+            if quantity is not None:
+                if planets_with_structures >= quantity:
+                    return self.AwardScore(PlayerTrying)
+                return False
+
+            # Case 2: Objective requires total number of structures
+            if total_structures >= quantity:
+                return self.AwardScore(PlayerTrying)
+
+            return False
 
         if resource in ('Ships', 'Units'):
             count = self._count_player_ship_systems(PlayerTrying, GameMap)
@@ -120,20 +152,8 @@ class Objective:
                 return self.AwardScore(PlayerTrying)
             return False
 
-        if resource == 'War Sun||FlagShip':
+        if resource == 'Ships':
             if self._player_has_unit_type(PlayerTrying, GameMap, ['WarSun', 'Flagship']):
-                return self.AwardScore(PlayerTrying)
-            return False
-
-        if resource == 'Structures':
-            count = 0
-            for tile in GameMap.tiles:
-                for planet in tile.Planets:
-                    if getattr(planet, 'OwnedBy', None) == PlayerTrying.PlayerID and getattr(planet, 'HasStructure', False):
-                        if 'IsNonHome' in reqs.get('Filters', {}) and getattr(planet, 'IsNonHome', False) != reqs['Filters']['IsNonHome']:
-                            continue
-                        count += 1
-            if count >= quantity:
                 return self.AwardScore(PlayerTrying)
             return False
 
@@ -146,13 +166,18 @@ class Objective:
         conditions = reqs.get('Conditions', []) or []
 
         if resource == 'technologies':
-            if 'in each of 2 colors' in ' '.join(conditions).lower():
+            # Handle needing a certain number of technologies of specific colors
+            if any(cond.startswith("in each of") for cond in conditions):
+                cond = next(c for c in conditions if c.startswith("in each of"))
+
                 color_counts = self._count_player_technology_colors(PlayerTrying)
-                if sum(1 for value in color_counts.values() if value >= quantity) >= 2:
+                qualifying = sum(1 for value in color_counts.values() if value >= quantity)
+
+                if qualifying >= int(cond.split()[3]):
                     return self.AwardScore(PlayerTrying)
                 return False
 
-            if 'unit technologies' in ' '.join(conditions).lower():
+            if 'unit technologies' in conditions:
                 if len(PlayerTrying.UnitTechnologies) >= quantity:
                     return self.AwardScore(PlayerTrying)
                 return False
@@ -164,7 +189,7 @@ class Objective:
         print(f"Unsupported OWN objective resource '{resource}' for scoring.")
         return False
 
-    def _evalSpendObjective(self, reqs, PlayerTrying : Player.Player, GameMap: Map.System, resources_used: int | None = None, trade_for_resources: int | None = None, influence_used: int | None = None, Tactics_token : int | None = None, Strategy_token : int | None = None) -> bool:
+    def _evalSpendObjective(self, reqs, PlayerTrying : Player.Player, resources_used: int | None = None, trade_for_resources: int | None = None, influence_used: int | None = None, Tactics_token : int | None = None, Strategy_token : int | None = None) -> bool:
         # Determine required amounts
         req_resources = reqs.get('Resources', 0)
         req_influence = reqs.get('Influence', 0)
@@ -220,7 +245,7 @@ class Objective:
         return self.AwardScore(PlayerTrying)
 
     def AttemptToScore(self, PlayerTrying : Player.Player, GameMap : Map.System, resources_used: int | None = None,  trade_for_resources: int | None = None, influence_used: int | None = None, Tactics_token : int | None = None, Strategy_token : int | None = None) -> bool:
-        if PlayerTrying.PlayerID in self.ScoredBy:
+        if self.ObjectiveName in PlayerTrying.ScoredObjectives:
             return False
 
         if self.ObjectiveReqs is None:
@@ -235,7 +260,7 @@ class Objective:
             case 'Own':
                 return self._evalOwnObjective(self.ObjectiveReqs, PlayerTrying)
             case 'Spend':
-                return self._evalSpendObjective(self.ObjectiveReqs, PlayerTrying, GameMap, resources_used, trade_for_resources, influence_used, Tactics_token, Strategy_token)
+                return self._evalSpendObjective(self.ObjectiveReqs, PlayerTrying, resources_used, trade_for_resources, influence_used, Tactics_token, Strategy_token)
             case _:
                 print(f"Unsupported objective type '{objective_type}'")
                 return False

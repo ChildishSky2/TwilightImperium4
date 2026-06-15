@@ -33,12 +33,12 @@ class UnitStats:
             elif isinstance(self.combat_value, (list, tuple)):
                 for CombatType in self.combat_value:
                     if CombatType is None:
+                        #allows for units that don't have combat values to be represented by None instead of empty lists
                         continue
 
                     for val in CombatType:
                         if val is not None and not (1 <= val <= 10):
                             raise ValueError(f"Combat values must be between 1-10, got {val}")
-
 
     def get_image(self, Colours : tuple[int, int, int], size: int = 5) -> ImageCache:
         """Get cached image for this unit"""

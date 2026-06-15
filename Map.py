@@ -17,8 +17,10 @@ class Planet:
 
         self.Tapped = True
 
-        self.Infantry = 1
-        self.Mechs = 1
+        self.Infantry = 0
+        self.Mechs = 0
+        self.SpaceDock = False
+        self.PDS = 1
         self.OwnedBy = random.randint(0, 4)#ID of owning player
         pass
 
@@ -46,11 +48,13 @@ class Tile:
         self.ActivatedBy : list[int] = []
 
         #For controlling the current ships in the space area of the system
-        self.ShipsInSpace : list[UnitType] = []
+        self.ShipsInSpace : list[UnitType] = [UnitType.FLAGSHIP]
         self.InfantryInSpace : int = 1
         self.MechsInSpace : int = 1
         self.ShipOwner = 1
-    
+
+        self.IsHomeSystem : int = None #ID of player who owns this system as home system
+
     def ActivateSystem(self, PlayerID : int):
         self.ActivatedBy.append(PlayerID)
 
@@ -165,6 +169,12 @@ class Tile:
 
     def GetShipsInSystem(self):
         return self.ShipsInSpace
+    
+    def SetHomeSystem(self, PlayerID : int):
+        self.IsHomeSystem = PlayerID
+    
+    def IsHomeSystemForPlayer(self, PlayerID : int):
+        return self.IsHomeSystem == PlayerID
 
 class System:
     #Represents the hexagonal game map with all systems and their positions

@@ -1,5 +1,6 @@
 from Game_Enums import Phases, TechnologyTypes, ActionPhase, MovementPhases, SpaceCombatPhases, InvasionPhases
 from Phases import PhaseManager
+import json
 
 #write out the technologies as equations
 class Technology:
@@ -19,6 +20,30 @@ class Technology:
 
         self.ActivationWindowMajorPhase : set[Phases | ActionPhase] = set()
         self.ActivationWindowMinorPhase : set[MovementPhases | SpaceCombatPhases | InvasionPhases] = set()
+
+    def LoadGeneralTechs():
+        AvailableTechs = []
+        with open("Technologies.json", "r", encoding="utf-8") as file: 
+            tech_data = json.load(file) 
+            for tech_id, tech in tech_data.items(): 
+                prereqs = tech["Prerequisites"] 
+                ty = TechnologyTypes
+                ty.value = tech["Type"]
+
+                AvailableTechs.append( 
+                    Technology( 
+                        TechID=int(tech_id), 
+                        TechName=tech["TechName"], 
+                        TechType=ty, 
+                        Blue_Prerequisites=prereqs["B"], 
+                        Green_Prerequisites=prereqs["G"], 
+                        Yellow_Prerequisites=prereqs['Y'], 
+                        Red_Prerequisites=prereqs["R"], 
+                        Effect=tech.get("Effect", None), 
+                        IsUnitUpgrade=tech.get("IsUnitUpgrade", False), 
+                        UnitStats=tech.get("UnitStats", None) )
+                        )
+        return AvailableTechs
 
 
     def __repr__(self):

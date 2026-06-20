@@ -3,7 +3,6 @@ import json
 import random
 
 from Game_Enums import PlanetTypes, Anomalies, UnitType
-from ImageCache import ImageCache
 #Map - contains information on each tile and how they all link together, as well as details of planets in the tiles
 
 class Planet:
@@ -43,8 +42,6 @@ class Tile:
 
         self.TileNumber : int = system_id
 
-        self.TileImage : ImageCache = None
-
         self.ActivatedBy : list[int] = []
 
         #For controlling the current ships in the space area of the system
@@ -57,38 +54,6 @@ class Tile:
 
     def ActivateSystem(self, PlayerID : int):
         self.ActivatedBy.append(PlayerID)
-
-    def LoadSystem(self, TileNumber):
-        """Gets data froma specified systme number from loading the systems.json file"""
-        # loads an individual system - to add new function to load all systems in single pass
-        self.Tile = TileNumber
-        self.TileImage = ImageCache.ImageCache(f"System_Tiles\\{str(TileNumber)}.jpg", 50)
-
-        with open("Systems.json", 'r') as file:
-            data = json.load(file)
-            System = data.get(str(TileNumber))
-
-            if System == None:#Empty System
-                raise KeyError(f"Unable to locate system with id {TileNumber}: Make sure that this system exists in the list of systems in Systems.json")
-            
-            for item in System:
-                match item[0]:
-                    case "Planet":
-                        self.Planets.append(Planet(*item[1:]))
-
-                    case "Wormhole":
-                        if item[1] == "Alpha":
-                            self.ContainsAlpha = True
-                        if item[1] == "Beta":
-                            self.ContainsBeta = True
-
-                    case "Anomaly":
-                        try:
-                            self.Anomaly = Anomalies[item[1]]
-                        except KeyError:
-                            print(f"Warning: Unknown anomaly type: {item[1]}")
-                            self.Anomaly = Anomalies.NoAnomaly
-        return
     
     def __str__(self):
         return f"System contains {len(self.Planets)} Planet(s) {"and a wormhole" if self.ContainsAlpha or self.ContainsBeta or self.ContainsGamma else "and no wormholes"}\n"
@@ -102,8 +67,6 @@ class Tile:
 
         if System == None:#Empty System
             raise KeyError(f"Unable to locate system with id {TileNumber}: Make sure that this system exists in the list of systems in Systems.json")
-        
-        self.TileImage = ImageCache(f"System_Tiles\\{str(TileNumber)}.jpg", 50)
 
         for item in SystemsData[str(TileNumber)]:
             if item is None:
@@ -130,7 +93,6 @@ class Tile:
         """Gets data from a specified system number from loading the systems.json file"""
         # loads an individual system - to add new function to load all systems in single pass
         self.Tile = TileNumber
-        self.TileImage = ImageCache(f"System_Tiles\\{str(TileNumber)}.jpg", 50)
         
         with open("Systems.json", 'r') as file:
             data = json.load(file)
@@ -300,14 +262,14 @@ class System:
                 if system != None:
                     continue
                 # This mode would need updating for new structure
-                raise NotImplementedError("Preset mode needs updating for new System class")
+                raise NotImplementedError("There are currently no Preset maps available for this version of the game")
         
         if mode == "Auto":
             with open("Systems.json", 'r') as file:
                 data = json.load(file)
 
             available_systems = set(data.keys())
-            available_systems.discard('18')
+            available_systems.discard((str(i) for i in range(1, 19)))  # Remove home systems (1-18) and mecatol rex
             
             # Generate a basic circular layout
             systems_to_place = ['18'] + list(available_systems)
@@ -367,5 +329,6 @@ class System:
             case _:
                 raise ValueError("Unable to have game with given number of players")
     
-        for pos, Race in zip(positions, RaceList):
-            self.tiles[len(self.tiles) - pos].TileImage = ImageCache(f"Assets\\RaceItems\\{Race.replace(' ', '_')}\\HomeSystem.png", 50)
+        for Player, pos, Race in zip(range(len(positions)), positions, RaceList):
+            self.tiles[len(self.tiles) - pos].LoadSystem(self.tiles[len(self.tiles) - pos].TileNumber)
+            self.tiles[len(self.tiles) - pos].SetHomeSystem(Player)

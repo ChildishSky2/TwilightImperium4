@@ -1,7 +1,5 @@
 TODO
 
-Wifi connections to other players
-
 Button Sizes should scale with window size
 
 Build GUI
@@ -9,12 +7,11 @@ Build GUI
 
 fix the problem with text size not adjusting
 
-Investigate possible Multiplayer over wifi
+Investigate possible Multiplayer over wifi - use socket, pickle - use server/player layout
+Remove the ImageCache as a reference from all other files except The interface in preparation
+
 
 Buttons for the active system - activate system, selecting ships to me moved there
 
 phases of a turn in action phase - taking planets
 
-rebuild Race.py - should be adaptable to any race, not be extended on an individual basis
-
-rebuild Map data structure - there should be a more effective way to hold data than simple list

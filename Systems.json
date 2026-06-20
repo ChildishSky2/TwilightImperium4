@@ -1,5 +1,75 @@
 {
-    "-1" : [
+    "-1" : [],
+"1" : [
+    ["Planet", "Jord", "NoType", 4, 2]
+],
+
+"2" : [
+    ["Planet", "Moll Primus", "NoType", 4, 1]
+],
+
+"3" : [
+    ["Planet", "Darien", "NoType", 4, 4]
+],
+
+"4" : [
+    ["Planet", "Muaat", "NoType", 4, 1]
+],
+
+"5" : [
+    ["Planet", "Nestphar", "NoType", 3, 2]
+],
+
+"6" : [
+    ["Planet", "[0.00]", "NoType", 5, 0]
+],
+
+"7" : [
+    ["Planet", "Winnu", "NoType", 3, 4]
+],
+
+"8" : [
+    ["Planet", "Mordai II", "NoType", 4, 0]
+],
+
+"9" : [
+    ["Planet", "Maaluuk", "NoType", 0, 2],
+    ["Planet", "Druaa", "NoType", 3, 1]
+],
+
+"10" : [
+    ["Planet", "Arc Prime", "NoType", 4, 0],
+    ["Planet", "Wren Terra", "NoType", 2, 1]
+],
+
+"11" : [
+    ["Planet", "Lisis II", "NoType", 1, 0],
+    ["Planet", "Ragh", "NoType", 2, 1]
+],
+
+"12" : [
+    ["Planet", "Nar", "NoType", 2, 3],
+    ["Planet", "Jol", "NoType", 1, 2]
+],
+
+"13" : [
+    ["Planet", "Tren'Lak", "NoType", 1, 0],
+    ["Planet", "Quinarra", "NoType", 3, 1]
+],
+    "14" : [
+    ["Planet", "Archon Ren", "NoType", 2, 3]
+    ],
+    "15" : [
+    ["Planet", "Retillion", "NoType", 2, 3],
+    ["Planet", "Shalloq", "NoType", 2, 1]
+    ],
+    "16" : [
+    ["Planet", "Arretze", "NoType", 2, 0],
+    ["Planet", "Hercant", "NoType", 1, 1],
+    ["Planet", "Kamdorn", "NoType", 0, 1]
+    ],
+    "17" : [
+    ["Wormhole", "Creuss Gate", "Delta", 0, 0]
     ],
     "18" : [
         ["Planet", "Mecatol Rex", "NoType", 1, 6]

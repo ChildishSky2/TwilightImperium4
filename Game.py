@@ -41,6 +41,8 @@ class Game:
 
         self.UnitManager = BasicUnits.UnitManager()
         #print(self.PublicObjectives)
+
+        self.GameLog = [] # item to store game log messages for record of actions
         pass
 
     def SetPlayerNumbers(self, NumberOfPlayers):
@@ -101,3 +103,5 @@ class Game:
 
             return
     
+    def MoveShips(self, movement : dict):
+        self.UnitManager.MoveShips( movement, self.Map, self.Players[self.Turn])

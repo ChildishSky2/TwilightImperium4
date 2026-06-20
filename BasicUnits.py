@@ -2,8 +2,6 @@ from dataclasses import dataclass, field
 from typing import Dict, Tuple, Optional
 import json
 from Game_Enums import UnitType
-from ImageCache import ImageCache
-from functools import lru_cache
 
 @dataclass
 class UnitStats:
@@ -22,7 +20,6 @@ class UnitStats:
     sustain_damage: bool = False
 
     image_path: Optional[str] = None  # Path to unit image
-    _image_cache: Optional[ImageCache] = None  # Cached image object
     
     def __post_init__(self):
         """Validate unit stats after initialization"""
@@ -39,13 +36,6 @@ class UnitStats:
                     for val in CombatType:
                         if val is not None and not (1 <= val <= 10):
                             raise ValueError(f"Combat values must be between 1-10, got {val}")
-
-    def get_image(self, Colours : tuple[int, int, int], size: int = 5) -> ImageCache:
-        """Get cached image for this unit"""
-        if self._image_cache is None:
-            self._image_cache = ImageCache(self.image_path, size)
-        
-        return self._image_cache.get_colored_scaled_tile(size, Colours)
     
     def has_image(self) -> bool:
         """Check if the unit has a valid image"""
@@ -311,9 +301,3 @@ class UnitManager:
         
         if "custom_units" in data:
             self._custom_units.update(data["custom_units"])
-
-    @lru_cache(maxsize=32)
-    def get_unit_image(self, unit_type: UnitType, Colour : tuple[int, int, int], size: int = 5) -> Optional[ImageCache]:
-        """Get the image for a specific unit"""
-        stats = self.get_unit_stats(unit_type)
-        return stats.get_image(Colour, size)

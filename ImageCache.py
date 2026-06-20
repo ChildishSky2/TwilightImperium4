@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 import pygame
 if not pygame.get_init():
     pygame.init()
@@ -38,6 +40,7 @@ class ImageCache:
        
         self.cache[base_radius] = scaled_tile
     
+    @lru_cache(maxsize=None)
     def get_scaled_tile(self, radius: int) -> pygame.Surface:
         """Get a scaled tile, generating it if not cached"""
         if radius not in self.cache:
@@ -84,6 +87,7 @@ class ImageCache:
         
         return self.color_cache[color_key]
     
+    @lru_cache(maxsize=None)
     def get_colored_scaled_tile(self, radius: int, colour: tuple) -> pygame.Surface:
         """Get a colored and scaled tile, using cache if available"""
         # Convert to tuple for consistent hashing

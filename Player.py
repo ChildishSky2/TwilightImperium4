@@ -2,7 +2,6 @@
 # List of techs
 # Units
 
-from ImageCache import ImageCache
 import Race
 import random
 
@@ -34,10 +33,6 @@ class Player:
         self.FleetTokens    = 3
         self.StrategyTokens = 2
 
-        self.Token : ImageCache = None
-
-        self.OwnerToken : ImageCache = None
-
         self.Resources          : int = 10
         self.AvailableResources : int = 10
         self.Influence          : int = 10
@@ -66,14 +61,6 @@ class Player:
     def SetRace(self, RaceName):
         assert RaceName in self.GetRaceOptions(), f"Race '{RaceName}' is not a valid option! Valid options are: {', '.join(self.GetRaceOptions())}"
         self.Race = Race.Race(RaceName)
-        self.Token = ImageCache(f"Assets\\RaceItems\\{RaceName.replace(' ', '_')}\\TacticsToken.png", 10)
-        self.OwnerToken = ImageCache(f"Assets\\RaceItems\\{RaceName.replace(' ', '_')}\\OwnerToken.png", 10)
-
-    def GetTokenImg(self, radius):
-        return self.Token.get_scaled_tile(radius)
-    
-    def GetOwnerTokenImg(self, radius):
-        return self.OwnerToken.get_scaled_tile(radius)
     
     def Select_Strategy_Cards(self, CardID):
         #sets strategy card for player

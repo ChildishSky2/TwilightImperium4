@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from Game_Enums import UnitType, Race
+from Game_Enums import UnitType
 import os
 
 def GetRaceOptions():

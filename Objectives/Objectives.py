@@ -11,10 +11,10 @@ import Player
 import Map
 
 
-# Have  - Systems
+# Have  - Systems / Planets / Units
 # Own - Technologies
-# Control - Planet
-# Spend - Resources
+# Control - Planets
+# Spend - Resources / Influence / Trade Goods / Tokens
 
 class Objective:
     def __init__(self, ObjectiveValue, ObjectiveImage = None, ObjectiveName = None):
@@ -52,7 +52,6 @@ class Objective:
         selected_file = random.choice(images)
         
         self.ObjectiveName = selected_file
-        self.ObjectiveImage = ImageCache.ImageCache(f"Objectives/{self.ObjectiveValue}Point/{selected_file}.png", 50)
 
         json_file = f"Objectives/{self.ObjectiveValue}Point/{self.ObjectiveValue}Point.json"
         with open(json_file, 'r', encoding='utf-8') as f:
@@ -64,24 +63,6 @@ class Objective:
         if hasattr(PlayerTrying, 'ScoredObjectives'):
             PlayerTrying.ScoredObjectives.add(self)
         return True
-
-    def _count_player_technologies(self, PlayerTrying : Player.Player) -> int:
-        return (
-            len(PlayerTrying.PropulsionTechs)
-            + len(PlayerTrying.BiologicalTechs)
-            + len(PlayerTrying.CyberneticTechs)
-            + len(PlayerTrying.WarfareTechs)
-            + len(PlayerTrying.UnitTechnologies)
-        )
-
-    def _count_player_technology_colors(self, PlayerTrying : Player.Player) -> dict:
-        return {
-            'B': len(PlayerTrying.PropulsionTechs),
-            'G': len(PlayerTrying.BiologicalTechs),
-            'Y': len(PlayerTrying.CyberneticTechs),
-            'R': len(PlayerTrying.WarfareTechs),
-            'U': len(PlayerTrying.UnitTechnologies)
-        }
 
     def _count_player_ship_systems(self, PlayerTrying : Player.Player, GameMap : Map.System) -> int:
         count = 0
@@ -111,7 +92,7 @@ class Objective:
 
             for tile in GameMap.tiles:
                 # Apply optional condition: "in non-home systems"
-                if 'in non-home systems' in conditions and getattr(planet, 'IsNonHome', None) is not None:
+                if 'in non-home systems' in conditions and getattr(tile, 'IsNonHome', None) is not None:
                         continue
                 
                 for planet in tile.Planets:
@@ -128,7 +109,6 @@ class Objective:
                         planets_with_structures += 1
                         total_structures += structures_here
 
-            print(f"Player {PlayerTrying.PlayerID} has {planets_with_structures} planets with structures and a total of {total_structures} structures.")
             # Case 1: Objective requires structures on N planets
             if quantity is not None:
                 if planets_with_structures >= quantity:
@@ -152,11 +132,6 @@ class Objective:
                 return self.AwardScore(PlayerTrying)
             return False
 
-        if resource == 'Ships':
-            if self._player_has_unit_type(PlayerTrying, GameMap, ['WarSun', 'Flagship']):
-                return self.AwardScore(PlayerTrying)
-            return False
-
         print(f"Unsupported HAVE objective resource '{resource}' for scoring.")
         return False
 
@@ -166,11 +141,17 @@ class Objective:
         conditions = reqs.get('Conditions', []) or []
 
         if resource == 'technologies':
+            color_counts = {
+            'B': len(PlayerTrying.PropulsionTechs),
+            'G': len(PlayerTrying.BiologicalTechs),
+            'Y': len(PlayerTrying.CyberneticTechs),
+            'R': len(PlayerTrying.WarfareTechs),
+            'U': len(PlayerTrying.UnitTechnologies)
+            }
             # Handle needing a certain number of technologies of specific colors
             if any(cond.startswith("in each of") for cond in conditions):
                 cond = next(c for c in conditions if c.startswith("in each of"))
 
-                color_counts = self._count_player_technology_colors(PlayerTrying)
                 qualifying = sum(1 for value in color_counts.values() if value >= quantity)
 
                 if qualifying >= int(cond.split()[3]):
@@ -182,7 +163,7 @@ class Objective:
                     return self.AwardScore(PlayerTrying)
                 return False
 
-            if self._count_player_technologies(PlayerTrying) >= quantity:
+            if sum(color_counts.values()) >= quantity:
                 return self.AwardScore(PlayerTrying)
             return False
 
@@ -254,7 +235,7 @@ class Objective:
         objective_type = self.ObjectiveReqs.get('type')
         match objective_type:
             case 'Have':
-                return self._evalHaveObjective(self.ObjectiveReqs, PlayerTrying, GameMap)
+                return False# not completed yet -  self._evalHaveObjective(self.ObjectiveReqs, PlayerTrying, GameMap)
             case 'Control':
                 return self.__evalControlObjective(self.ObjectiveReqs.get('Filters', {}), PlayerTrying, GameMap)
             case 'Own':
@@ -266,7 +247,6 @@ class Objective:
                 return False
 
     def __evalControlObjective(self, filters, PlayerTrying, GameMap):
-        return False
         # Count planets that match the filters
         planet_count = 0
         if filters.get('PlanetTrait') in ('Any', 'Same'):
@@ -294,25 +274,26 @@ class Objective:
         return False
 
     def __matchesFilters(self, planet, filters):
+        #filter check for planets which may not ahve all attributes (Mecattol Rex, etc.)
         for key, value in filters.items():
-            if key == 'PlanetTrait':
-
-                if value in ('Any', 'Same'):
-                    continue
-                if not hasattr(planet, 'PlanetTrait') or planet.PlanetType != value:
-                    return False
-            elif key == 'HasAttachment':
-                if not hasattr(planet, 'HasAttachment') or planet.HasAttachment != value:
-                    return False
-            elif key == 'IsNonHome':
-                if not hasattr(planet, 'IsNonHome') or planet.IsNonHome != value:
-                    return False
-            elif key == 'HasStructure':
-                if not hasattr(planet, 'HasStructure') or planet.HasStructure != value:
-                    return False
-            elif key == 'HasTechSpecialty':
-                if not hasattr(planet, 'HasTechSpecialty') or planet.HasTechSpecialty != value:
-                    return False
+            match key:
+                case 'PlanetTrait':
+                    if value in ('Any', 'Same'):
+                        continue
+                    if not hasattr(planet, 'PlanetTrait') or planet.PlanetTrait != value:
+                        return False
+                case 'HasAttachment':
+                    if not hasattr(planet, 'HasAttachment') or planet.HasAttachment != value:
+                        return False
+                case 'IsNonHome':
+                    if not hasattr(planet, 'IsNonHome') or planet.IsNonHome != value:
+                        return False
+                case 'HasStructure':
+                    if not hasattr(planet, 'HasStructure') or planet.HasStructure != value:
+                        return False
+                case 'HasTechSpecialty':
+                    if not hasattr(planet, 'HasTechSpecialty') or planet.HasTechSpecialty != value:
+                        return False
         return True
     
     def __repr__(self):

@@ -65,27 +65,9 @@ class UnitType(Enum):
     PDS = "PDS"
     MECH = "Mech"
 
-class Race(Enum):
-    Arborec = 1
-    BaronyOfLetnev = 2
-    ClanOfSaar = 3
-    Creuss = 4
-    EmiratesOfHacan = 5
-    JolNar = 6
-    Lizix = 7
-    Mentak = 8
-    Muatt = 9
-    Naalu = 10
-    NekroVirus = 11
-    SardockNorr = 12
-    Sol = 13
-    Winnu = 14
-    Yin = 15
-    Yssaril = 16
-
 class TechnologyTypes(Enum):
     Propulsion = "B"
     Cybernetic = "Y"
     Biological = "G"
     Warfare = "R"
-    Unit = "I"
+    Unit = "U"

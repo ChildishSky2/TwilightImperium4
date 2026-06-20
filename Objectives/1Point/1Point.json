@@ -103,7 +103,7 @@
         "text" : "Have units in 2 systems that contain legendary planets, Mecatol Rex, or anomalies",
         "type" : "Have",
         "Resource" : "Units",
-        "Quantity" : "3",
+        "Quantity" : "2",
         "Conditions" : ["Contain Legendary Planets||Mecatol Rex||Anomalies"]
     },
     "Negotiate_Trade_Routes" : {

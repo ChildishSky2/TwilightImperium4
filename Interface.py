@@ -1,4 +1,5 @@
 import os
+from unittest import case
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 import pygame
@@ -12,6 +13,7 @@ from ImageCache import ImageCache
 from Map import Tile
 from Game_Enums import UnitType
 from enum import Enum
+
 
 class Views(Enum):
     Objectives = "Objectives"
@@ -219,7 +221,7 @@ class UserInterface():
                         token_x = center_x + circle_radius * math.cos(angle_rad) - token_size / 2
                         token_y = center_y + circle_radius * math.sin(angle_rad) - token_size / 2
 
-                        token_img = self.Game.Players[player_idx].GetTokenImg(token_size)
+                        token_img = self.PlayerTokens.get(player_idx)[0].get_scaled_tile(token_size) if self.PlayerTokens.get(player_idx) is not None else None
                         blits.append((token_img, (token_x, token_y)))
                 
                 case 3:
@@ -365,7 +367,7 @@ class UserInterface():
         for index, tile in enumerate(self.Game.Map.tiles):
             x, y = self.MapHexPositions[index]
 
-            blits.append((tile.TileImage.get_scaled_tile(self.radius), self.MapHexPositions[index]))
+            blits.append((self.MapImages[tile.TileNumber].get_scaled_tile(self.radius), (x, y)))
             if self.DisplayTokens:
                 GetTokenBlits(blits, tile, x + x_adjust, y + y_adjust)
             if self.DisplayGF:
@@ -401,7 +403,8 @@ class UserInterface():
                 border_radius=10
             )
 
-            if self.Game.Players[self.Game.Turn] == player:
+            if self.Game.Players[self.Game.Turn] == player:# if is active player
+
                 inner_rect = rect.inflate(8, 8)  # Creates a gap of 4 pixels on each side
                 pygame.draw.rect(
                     self.Screen,
@@ -587,7 +590,7 @@ class UserInterface():
         
         def FinaliseMovementsButton():
             pygame.draw.rect(self.Screen, (0, 0, 0), self.FinaliseMovementsButton, 2)
-            text_surface = font.render("Finalise Movement", True, (0, 0, 0))
+            text_surface = font.render("Make Movements", True, (0, 0, 0))
             text_rect = text_surface.get_rect(
             topleft=(
                 self.FinaliseMovementsButton.left + padding,
@@ -761,7 +764,7 @@ class UserInterface():
         
         token_size = int(min_window_dim * 0.02)
         for idx, Player in enumerate(self.Game.Players):
-            img = Player.GetOwnerTokenImg(token_size)
+            img = self.PlayerTokens.get(Player.PlayerID)[1].get_scaled_tile(token_size)
             # VP position mapped to bar width
             vp_ratio = Player.VP / (self.Game.VPtoWin + 1) # assuming max VP = 10
 
@@ -773,14 +776,18 @@ class UserInterface():
 
         for i, Obj_list in enumerate(self.Game.PublicObjectives):
             for l, Obj in enumerate(Obj_list):
-                assert isinstance(Obj.ObjectiveImage, ImageCache), "should be type ImageCache, not " + str(type(Obj.ObjectiveImage))
-                scaled = pygame.transform.smoothscale( Obj.ObjectiveImage.original_image, (int(min_window_dim * 0.19), int(min_window_dim * 0.225)) )
+                if len(self.ObjectivesUI) <= i * 5 + l:
+                    self.ObjectivesUI.append(ImageCache(
+                    f"Objectives/{Obj.ObjectiveValue}Point/{Obj.ObjectiveName}.png",
+                    50
+                    ))
+                scaled = pygame.transform.smoothscale( self.ObjectivesUI[i * 5 + l].original_image, (int(min_window_dim * 0.19), int(min_window_dim * 0.225)) )
                 x = 0.025 * self.Screen.get_width() + l * (scaled.get_width() * 1.1) 
                 y = 0.28 * self.Screen.get_height() + 1.1 * i * scaled.get_height() 
 
                 self.Screen.blit(scaled, (x, y)) # Update rect every frame
 
-                Obj.ObjectiveImage.SetRect(pygame.Rect(x, y, scaled.get_width(), scaled.get_height()))
+                self.ObjectivesUI[ i * 5 + l].SetRect(pygame.Rect(x, y, scaled.get_width(), scaled.get_height()))
 
                 token_size = max(10, int(min(scaled.get_width(), scaled.get_height()) * 0.12))
                 token_x = x + 4
@@ -789,7 +796,7 @@ class UserInterface():
                 idx = 0
                 for player in self.Game.Players:
                     if Obj in player.ScoredObjectives:
-                        owner_token = player.GetOwnerTokenImg(token_size)
+                        owner_token = self.PlayerTokens.get(player.PlayerID)[1].get_scaled_tile(token_size)
                 
                         col_x = token_x + (idx // 3) * 1.1 * token_size
                         col_y = token_y + (idx % 3) * 1.1 * token_size
@@ -799,9 +806,9 @@ class UserInterface():
 
 
                 if self.selectedObjective is not None and divmod(self.selectedObjective, 5) == (l, i):
-                    pygame.draw.rect(self.Screen, (255, 0, 0), Obj.ObjectiveImage.rect, width=3)
+                    pygame.draw.rect(self.Screen, (255, 0, 0), self.ObjectivesUI[i * 5 + l].rect, width=3)
 
-                    r = Obj.ObjectiveImage.rect.copy()
+                    r = self.ObjectivesUI[i * 5 + l].rect.copy()
                     r.y += int(r.height * 0.75)
                     r.height = int(r.height * 0.25)
                     overlay = pygame.Surface((r.width, r.height), pygame.SRCALPHA)
@@ -1263,7 +1270,7 @@ class UserInterface():
 
         for idx, obj_List in enumerate(self.Game.PublicObjectives):
             for idx2, obj in enumerate(obj_List):
-                if obj.ObjectiveImage.rect.collidepoint(mouse_pos):
+                if self.ObjectivesUI[idx * 5 + idx2].rect.collidepoint(mouse_pos):
                     clicked_objective = idx2 * 5 + idx
                     clicked_row = idx2
                     clicked_col = idx
@@ -1504,13 +1511,31 @@ class UserInterface():
 
         SettingsIcon = ImageCache("Assets\\SettingsIcon.png", self.radius)
 
+        self.ObjectivesUI = []
+
+        self.PlayerTokens = {
+            P.PlayerID:
+            (ImageCache(f"Assets\\RaceItems\\{P.Race.RaceName.replace(' ', '_')}\\TacticsToken.png", 10),
+             ImageCache(f"Assets\\RaceItems\\{P.Race.RaceName.replace(' ', '_')}\\OwnerToken.png", 10))
+
+            for P in self.Game.Players
+        }
+
+        self.MapImages = { tile.TileNumber : ImageCache(f"System_Tiles\\{tile.TileNumber}.jpg", self.radius) if int(tile.TileNumber) > 18 else ImageCache(f"System_Tiles\\{-1}.jpg", self.radius) for tile in self.Game.Map.tiles }
+
+        clock = pygame.time.Clock()
+        font = pygame.font.SysFont(None, 24)
+
         while Running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+
                     Running = False
+
                 elif event.type == pygame.MOUSEBUTTONDOWN:
 
                     self._Global_Handle_click(event.pos)
+
 
             self.Screen.fill((200, 200, 200))
 
@@ -1529,17 +1554,24 @@ class UserInterface():
 
                 case Views.StrategyCards:
                     self._draw_StratCards(StrategyCard_Symbols)
-                
+
                 case Views.Objectives:
                     self._draw_Objectives(ScoringBar)
-                    pass
-                
+
             if self.InMenu:
                 self._draw_Menu()
 
             self._draw_player_areas(Technology_symbols)
             self._draw_buttons()
+
+            # --- FPS TRACKER ---
+            fps = int(clock.get_fps())
+            fps_text = font.render(f"FPS: {fps}", True, (0, 0, 0))
+            self.Screen.blit(fps_text, (10, 10))
+            # --------------------
+
             pygame.display.flip()
+            clock.tick(60)
 
         pygame.quit()
 

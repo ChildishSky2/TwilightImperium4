@@ -9,7 +9,9 @@ Build GUI
 
 fix the problem with text size not adjusting
 
-Investigate possible Multiplayer over wifi
+Investigate possible Multiplayer over wifi - use socket, pickle - use server/player layout
+Remove the ImageCache as a reference from all other files except The interface in preparation
+
 
 Buttons for the active system - activate system, selecting ships to me moved there
 

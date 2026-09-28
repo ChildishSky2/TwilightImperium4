@@ -16,8 +16,10 @@ class Planet:
 
         self.Tapped = True
 
-        self.Infantry = 1
-        self.Mechs = 1
+        self.Infantry = 0
+        self.Mechs = 0
+        self.SpaceDock = False
+        self.PDS = 1
         self.OwnedBy = random.randint(0, 4)#ID of owning player
         pass
 
@@ -43,44 +45,15 @@ class Tile:
         self.ActivatedBy : list[int] = []
 
         #For controlling the current ships in the space area of the system
-        self.ShipsInSpace : list[UnitType] = []
+        self.ShipsInSpace : list[UnitType] = [UnitType.FLAGSHIP]
         self.InfantryInSpace : int = 1
         self.MechsInSpace : int = 1
         self.ShipOwner = 1
-    
+
+        self.IsHomeSystem : int = None #ID of player who owns this system as home system
+
     def ActivateSystem(self, PlayerID : int):
         self.ActivatedBy.append(PlayerID)
-
-    def LoadSystem(self, TileNumber):
-        """Gets data froma specified systme number from loading the systems.json file"""
-        # loads an individual system - to add new function to load all systems in single pass
-        self.Tile = TileNumber
-
-        with open("Systems.json", 'r') as file:
-            data = json.load(file)
-            System = data.get(str(TileNumber))
-
-            if System == None:#Empty System
-                raise KeyError(f"Unable to locate system with id {TileNumber}: Make sure that this system exists in the list of systems in Systems.json")
-            
-            for item in System:
-                match item[0]:
-                    case "Planet":
-                        self.Planets.append(Planet(*item[1:]))
-
-                    case "Wormhole":
-                        if item[1] == "Alpha":
-                            self.ContainsAlpha = True
-                        if item[1] == "Beta":
-                            self.ContainsBeta = True
-
-                    case "Anomaly":
-                        try:
-                            self.Anomaly = Anomalies[item[1]]
-                        except KeyError:
-                            print(f"Warning: Unknown anomaly type: {item[1]}")
-                            self.Anomaly = Anomalies.NoAnomaly
-        return
     
     def __str__(self):
         return f"System contains {len(self.Planets)} Planet(s) {"and a wormhole" if self.ContainsAlpha or self.ContainsBeta or self.ContainsGamma else "and no wormholes"}\n"
@@ -158,6 +131,12 @@ class Tile:
 
     def GetShipsInSystem(self):
         return self.ShipsInSpace
+    
+    def SetHomeSystem(self, PlayerID : int):
+        self.IsHomeSystem = PlayerID
+    
+    def IsHomeSystemForPlayer(self, PlayerID : int):
+        return self.IsHomeSystem == PlayerID
 
 class System:
     #Represents the hexagonal game map with all systems and their positions
@@ -349,4 +328,3 @@ class System:
                 positions = [3, 6, 9, 12, 15, 18]
             case _:
                 raise ValueError("Unable to have game with given number of players")
-

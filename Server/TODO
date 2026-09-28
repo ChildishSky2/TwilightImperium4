@@ -1,0 +1,20 @@
+TODO
+
+Wifi connections to other players
+
+Button Sizes should scale with window size
+
+Build GUI
+ - add starting screen to app
+
+fix the problem with text size not adjusting
+
+Investigate possible Multiplayer over wifi
+
+Buttons for the active system - activate system, selecting ships to me moved there
+
+phases of a turn in action phase - taking planets
+
+rebuild Race.py - should be adaptable to any race, not be extended on an individual basis
+
+rebuild Map data structure - there should be a more effective way to hold data than simple list
